@@ -461,11 +461,18 @@
             line-height: 1.5;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .strategy-body h4 {
             font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+            color: var(--text-main);
+        }
+
+        .strategy-body h5 {
+            font-size: 0.82rem;
             font-weight: 700;
             margin-bottom: 2px;
             color: var(--text-main);
@@ -492,6 +499,26 @@
 
         .broker-links a:hover {
             text-decoration: underline;
+        }
+
+        /* Mini comparison table inside Strategy Insight */
+        .mini-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            margin: 6px 0 8px 0;
+        }
+        .mini-table th,
+        .mini-table td {
+            border: 1px solid var(--border);
+            padding: 4px 6px;
+            text-align: left;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        .mini-table th {
+            background: var(--bg-color);
+            color: var(--text-muted);
         }
 
         /* --- MOBILE-SPECIFIC TUNING FOR VERY SMALL VIEWPORTS --- */
@@ -532,6 +559,10 @@
             }
             th, td {
                 padding: 6px 4px;
+            }
+
+            .mini-table {
+                font-size: 0.75rem;
             }
         }
 
@@ -791,29 +822,93 @@
                 </div>
 
                 <div>
-                    <h4>VOO – S&P 500 Core</h4>
+                    <h4>VOO vs VTI – Why Picking One Is Usually Smarter</h4>
                     <p>
-                        <span class="tag tag-voo">VOO</span> tracks the S&P 500: roughly 500 large, profitable U.S. companies across sectors 
-                        (technology, healthcare, financials, industrials, consumer, etc.). It is often used as the “engine” of a portfolio because:
+                        It is generally smarter to pick <strong>only one</strong> of these funds. Investing in both
+                        <span class="tag tag-voo">VOO</span> and <span class="tag tag-vti">VTI</span> adds complexity without providing
+                        meaningful diversification.
                     </p>
+
+                    <h5>1. The Illusion of Diversification</h5>
                     <ul>
-                        <li>Broad diversification across the largest U.S. businesses.</li>
-                        <li>Historically strong risk-adjusted returns.</li>
-                        <li>Low-cost, simple, and easy to maintain.</li>
+                        <li><strong>Extreme overlap:</strong> VTI is market-cap weighted. Because the S&P 500 companies are so massive, they make up roughly <strong>80–85%</strong> of VTI by weight.</li>
+                        <li><strong>Correlation ~0.99:</strong> If VOO goes up 1%, VTI will usually move very close to 1% as well.</li>
+                        <li><strong>Result:</strong> Holding both just tilts you slightly toward large-cap stocks. You are mostly buying the same companies twice.</li>
+                    </ul>
+
+                    <h5>2. Comparison at a Glance</h5>
+                    <table class="mini-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>VOO (S&P 500)</th>
+                                <th>VTI (Total Market)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Scope</td>
+                                <td>Top ~500 U.S. companies (Large-Cap)</td>
+                                <td>~3,600+ U.S. companies (Large, Mid, &amp; Small)</td>
+                            </tr>
+                            <tr>
+                                <td>Expense Ratio</td>
+                                <td>0.03%</td>
+                                <td>0.03%</td>
+                            </tr>
+                            <tr>
+                                <td>Top 10 Holdings</td>
+                                <td>Apple, Microsoft, NVIDIA, etc.</td>
+                                <td>Almost identical to VOO (slightly lower weights)</td>
+                            </tr>
+                            <tr>
+                                <td>Performance</td>
+                                <td>Slightly higher in recent tech/large-cap rallies</td>
+                                <td>Very similar long-term performance</td>
+                            </tr>
+                            <tr>
+                                <td>Volatility</td>
+                                <td>Slightly lower</td>
+                                <td>Slightly higher (more small/mid caps)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h5>3. Which One Should You Pick?</h5>
+                    <p><strong>Fees (0.03%) and tax efficiency are essentially the same.</strong> The choice is about philosophy:</p>
+                    <ul>
+                        <li><strong>Choose VOO if:</strong>
+                            <ul>
+                                <li>You believe the largest, most established U.S. companies will continue to drive the market.</li>
+                                <li>You want a “cleaner” portfolio focused on blue-chip names and prefer to exclude smaller, riskier companies.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Choose VTI if:</strong>
+                            <ul>
+                                <li>You want to own <em>everything</em> and never worry about missing a small-cap or mid-cap breakout decade.</li>
+                                <li>You prefer a logically “complete” passive strategy that does not require guessing which company size will win.</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h5>4. Strategic Exception – Tax-Loss Harvesting</h5>
+                    <p style="font-size:0.8rem;">
+                        The main time it makes sense to actively “use” both funds is in a <strong>taxable brokerage account</strong> for
+                        <strong>tax-loss harvesting</strong>:
+                    </p>
+                    <ul style="font-size:0.8rem;">
+                        <li>They track different indices (S&amp;P 500 vs CRSP US Total Market) but behave very similarly.</li>
+                        <li>If VOO drops, you can sell it to realize a tax loss and immediately buy VTI to stay invested.</li>
+                        <li>This usually avoids the IRS “wash sale” rule, since the funds are not considered <em>substantially identical</em> by most interpretations.</li>
                     </ul>
                 </div>
 
                 <div>
-                    <h4>VTI – Total U.S. Market</h4>
-                    <p>
-                        <span class="tag tag-vti">VTI</span> owns almost the entire U.S. stock market: VOO’s large caps <em>plus</em> thousands of mid and small caps.
-                        It acts as your “safety net” for capturing unexpected breakouts in smaller companies.
+                    <h4>VOO / VTI Summary</h4>
+                    <p style="font-size:0.8rem;">
+                        For most long-term investors, <strong>picking one core fund (VOO or VTI) and sticking with it</strong> is simpler and cleaner.
+                        If you also want a tax-loss harvesting partner in taxable accounts, you can keep the other fund on standby for that specific purpose.
                     </p>
-                    <ul>
-                        <li>Includes VOO’s holdings plus ~3,000 additional mid- and small-cap names.</li>
-                        <li>More exposure to small/mid-cap volatility and upside.</li>
-                        <li>Pairs well with VOO (e.g., 50/50 or 60/40) to keep things simple but broad.</li>
-                    </ul>
                 </div>
 
                 <div class="broker-links">
@@ -916,7 +1011,7 @@
                             <th>Year</th>
                             <th>Age</th>
                             <th>Total Invested</th>
-                            <th>Standard (7%)</th>
+                            <th>Conservative (7%)</th>
                             <th>Moderate (10%)</th>
                             <th>Historical (12.9%)</th>
                         </tr>
@@ -1052,7 +1147,7 @@
         // Update Breakdown
         renderBreakdown(results[0].limits); // Use first year limits for display context
 
-        // Update Stats
+        // Update Stats – using default 4% rule for headline income to keep it simple
         document.getElementById('totalInvested').innerText = formatMoneyCompact(final.invested);
         document.getElementById('resMod').innerText = formatMoneyCompact(final.mod);
         document.getElementById('incMod').innerText = formatMonthlyIncome(final.mod);
