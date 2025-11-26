@@ -16,7 +16,6 @@
             --accent-green: #059669;
             --accent-orange: #d97706;
             --accent-purple: #7c3aed;
-            --danger: #ef4444;
             --chart-grid: #e2e8f0;
             --milestone-bg: #f1f5f9;
         }
@@ -32,155 +31,692 @@
             --accent-green: #34d399;
             --accent-orange: #fbbf24;
             --accent-purple: #a78bfa;
-            --danger: #f87171;
             --chart-grid: #334155;
             --milestone-bg: #334155;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        body { background: var(--bg-color); color: var(--text-main); padding: 20px; transition: background 0.3s; line-height: 1.6; }
-
-        /* Header */
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
-        h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.025em; }
-        .header-controls { display: flex; gap: 10px; flex-wrap: wrap; }
-        
-        button {
-            cursor: pointer; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 0.9rem;
-            border: 1px solid var(--border); background: var(--card-bg); color: var(--text-main); transition: 0.2s;
-            display: inline-flex; align-items: center; gap: 6px;
+        /* GLOBAL FIXES FOR MOBILE OVERFLOW */
+        html {
+            box-sizing: border-box;
+            max-width: 100%;
+            overflow-x: hidden;
         }
-        button:hover { background: var(--border); }
-        .btn-primary { background: var(--primary); color: white; border: none; }
-        .btn-primary:hover { background: var(--primary-hover); }
-
-        /* Layout */
-        .grid-container { display: grid; grid-template-columns: 340px 1fr; gap: 25px; max-width: 1400px; margin: 0 auto; }
-        
-        /* Mobile Optimization */
-        @media (max-width: 900px) { 
-            body { padding: 15px; }
-            .grid-container { grid-template-columns: 1fr; gap: 20px; } 
-            header { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .header-controls { width: 100%; justify-content: flex-start; }
-            h1 { font-size: 1.3rem; }
+        *, *::before, *::after {
+            box-sizing: inherit;
         }
 
-        /* Card Styles */
-        .card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
-        .card-header { font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        
-        /* Form Elements */
-        .input-group { margin-bottom: 16px; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
-        .input-group input, .input-group select {
-            width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border);
-            background: var(--bg-color); color: var(--text-main); font-size: 1rem; /* 1rem prevents zoom on iOS */
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
-        .input-group input:focus { outline: 2px solid var(--primary); border-color: transparent; }
         
-        /* Range Slider */
-        .range-wrapper { display: flex; align-items: center; gap: 15px; }
-        input[type="range"] { flex: 1; accent-color: var(--primary); height: 24px; cursor: pointer; }
-        .range-val { font-variant-numeric: tabular-nums; width: 45px; text-align: right; font-size: 0.95rem; font-weight: 600; }
+        body {
+            background: var(--bg-color);
+            color: var(--text-main);
+            padding: 15px;
+            transition: background 0.3s;
+            line-height: 1.5;
+            font-size: 16px;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
 
-        /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-box { padding: 15px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border); text-align: center; }
-        .stat-box h4 { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-        .stat-box .value { font-size: 1.1rem; font-weight: 800; display: block; margin-bottom: 4px; }
-        .stat-box .sub-value { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
-        .stat-box.highlight { border-left: 4px solid var(--primary); }
-        .stat-box.green { border-left: 4px solid var(--accent-green); }
-        .stat-box.purple { border-left: 4px solid var(--accent-purple); }
+        /* --- Header --- */
+        header { 
+            display: flex; 
+            flex-direction: column; /* Stack by default on mobile */
+            gap: 15px; 
+            margin-bottom: 20px; 
+            padding-bottom: 15px; 
+            border-bottom: 1px solid var(--border); 
+        }
+        
+        .header-content h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        button.icon-btn {
+            cursor: pointer;
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+        button.icon-btn:hover { background: var(--border); }
+        button.primary-icon { background: var(--primary); color: white; border: none; }
 
-        /* Chart Area */
-        .chart-wrapper { height: 400px; position: relative; margin-top: 20px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--bg-color); }
-        svg { width: 100%; height: 100%; overflow: visible; }
+        /* Desktop Header Override */
+        @media (min-width: 768px) {
+            header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .header-controls {
+                width: auto;
+                flex-wrap: nowrap;
+            }
+        }
+
+        /* --- Layout Grid --- */
+        .grid-container { 
+            display: grid; 
+            grid-template-columns: 1fr; /* Single column default */
+            gap: 20px; 
+            max-width: 1400px; 
+            width: 100%;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        
+        @media (min-width: 1024px) { 
+            .grid-container { grid-template-columns: 350px 1fr; } 
+        }
+
+        /* --- Cards --- */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 15px;
+            max-width: 100%;
+        }
+
+        .card-header {
+            font-weight: 700;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+            font-size: 1.05rem;
+        }
+        
+        /* --- Inputs --- */
+        .input-group { margin-bottom: 15px; }
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-color);
+            color: var(--text-main);
+            font-size: 1rem;
+            appearance: none;
+        }
+        .input-group input:focus {
+            outline: 2px solid var(--primary);
+            border-color: transparent;
+        }
+        
+        .range-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--primary);
+            height: 24px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .range-val {
+            font-variant-numeric: tabular-nums;
+            width: 45px;
+            text-align: right;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        /* --- Breakdown Box --- */
+        .breakdown-box {
+            background: var(--milestone-bg);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+        }
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .breakdown-row:last-child {
+            margin-bottom: 0;
+            padding-top: 6px;
+            border-top: 1px solid var(--border);
+            font-weight: 700;
+        }
+        .bd-label {
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .bd-val {
+            font-family: monospace;
+            font-weight: 600;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .breakdown-notes {
+            margin-top: 8px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* --- Stats Grid --- */
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); /* 2 cols on mobile baseline */
+            gap: 10px; 
+            margin-bottom: 20px; 
+            width: 100%;
+        }
+        .stat-box { 
+            padding: 12px; 
+            background: var(--bg-color); 
+            border-radius: 8px; 
+            border: 1px solid var(--border); 
+            min-width: 0;
+        }
+        .stat-box h4 {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .stat-box .value {
+            font-size: 1rem;
+            font-weight: 800;
+            display: block;
+            margin-bottom: 2px;
+            word-break: break-word;
+        }
+        .stat-box .sub-value {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .stat-box.highlight { border-left: 3px solid var(--primary); }
+        .stat-box.green { border-left: 3px solid var(--accent-green); }
+        .stat-box.purple { border-left: 3px solid var(--accent-purple); }
+        
+        /* Highlight spans full width on mobile for emphasis */
+        .stat-box:first-child { grid-column: span 2; } 
+
+        @media (min-width: 600px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+            .stat-box:first-child {
+                grid-column: auto;
+            }
+        }
+
+        /* --- Chart --- */
+        .chart-wrapper { 
+            height: 300px; 
+            width: 100%;
+            position: relative; 
+            margin-top: 20px; 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            padding: 10px 5px 25px 35px; 
+            background: var(--bg-color); 
+            overflow: hidden; 
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
         .axis-line { stroke: var(--border); stroke-width: 1; }
         .grid-line { stroke: var(--chart-grid); stroke-dasharray: 4; stroke-width: 1; }
         .line-con { fill: none; stroke: var(--accent-orange); stroke-width: 3; stroke-linejoin: round; }
         .line-mod { fill: none; stroke: var(--accent-green); stroke-width: 3; stroke-linejoin: round; }
         .line-hist { fill: none; stroke: var(--accent-purple); stroke-width: 3; stroke-linejoin: round; stroke-dasharray: 5,5; }
-        
-        /* Milestones & Info */
-        .milestone-container { margin-top: 10px; display: grid; gap: 15px; }
-        .milestone {
-            display: flex; gap: 15px; padding: 15px; border-radius: 8px; background: var(--milestone-bg);
-            border-left: 4px solid var(--text-muted); align-items: flex-start; font-size: 0.95rem;
-        }
-        .milestone.active { border-left-color: var(--primary); background: var(--card-bg); border: 1px solid var(--border); border-left: 4px solid var(--primary); }
-        .milestone .age-badge { background: var(--text-main); color: var(--bg-color); padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; min-width: 45px; text-align: center; }
-        .milestone-details h5 { font-weight: 800; margin-bottom: 4px; color: var(--primary); }
-        .milestone-details p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.4; }
+        .chart-label { font-size: 10px; fill: var(--text-muted); }
 
-        /* Tag Styles */
-        .tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        /* --- Table --- */
+        .table-container { 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+            margin-top: 10px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border); 
+            max-height: 400px;
+            width: 100%;
+            max-width: 100%;
+        }
+        .table-explainer {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: right;
+            background: var(--card-bg);
+            min-width: 0;              /* Let it shrink to viewport */
+            table-layout: fixed;       /* Columns share available width */
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            white-space: normal;       /* Allow wrapping */
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+        }
+        th {
+            background: var(--bg-color);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-align: right;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        th:first-child,
+        td:first-child {
+            text-align: left;
+            position: sticky;
+            left: 0;
+            background: var(--card-bg);
+            z-index: 20;
+            border-right: 1px solid var(--border);
+        }
+        th:first-child {
+            z-index: 30;
+            background: var(--bg-color);
+        }
+        .inc-cell {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            display: block;
+        }
+
+        .swr-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+        .swr-controls select {
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-color);
+            color: var(--text-main);
+            font-size: 0.8rem;
+        }
+
+        /* --- Milestones --- */
+        .milestone-container {
+            display: grid;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .milestone {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            background: var(--milestone-bg);
+            border-left: 4px solid var(--text-muted);
+            align-items: flex-start;
+            font-size: 0.9rem;
+        }
+        .milestone.active {
+            border-left-color: var(--primary);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+        }
+        .milestone .age-badge {
+            background: var(--text-main);
+            color: var(--bg-color);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            min-width: 40px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .tag {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            background: #e2e8f0;
+            color: #334155;
+        }
         .tag-vti { background: #dbeafe; color: #1e40af; }
         .tag-voo { background: #dcfce7; color: #166534; }
-        
-        /* Links */
-        .links-section { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px; }
-        .link-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .ext-link {
-            text-decoration: none; padding: 12px; background: var(--bg-color); border: 1px solid var(--border);
-            border-radius: 6px; color: var(--primary); font-weight: 600; display: block; text-align: center;
-            transition: all 0.2s;
+
+        .tooltip {
+            position: absolute;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.1s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            z-index: 100;
+            line-height: 1.4;
+            white-space: nowrap;
+            max-width: 90%;
         }
-        .ext-link:hover { background: var(--primary); color: white; border-color: var(--primary); }
 
-        .tooltip { position: absolute; background: var(--card-bg); border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.85rem; pointer-events: none; opacity: 0; transition: opacity 0.1s; box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 10; line-height: 1.4; }
+        .strategy-body {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-        /* Print Styles */
-        .print-summary { display: none; margin-bottom: 20px; padding: 15px; border: 1px solid #000; border-radius: 4px; }
+        .strategy-body h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+            color: var(--text-main);
+        }
+
+        .strategy-body ul {
+            padding-left: 18px;
+            margin: 4px 0 8px 0;
+        }
+
+        .strategy-body li {
+            margin-bottom: 4px;
+        }
+
+        .broker-links {
+            font-size: 0.8rem;
+            margin-top: 6px;
+        }
+
+        .broker-links a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .broker-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- MOBILE-SPECIFIC TUNING FOR VERY SMALL VIEWPORTS --- */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+
+            header {
+                align-items: flex-start;
+            }
+
+            .card {
+                padding: 10px;
+            }
+
+            .grid-container {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;   /* single-column stats on very small screens */
+            }
+            .stat-box:first-child {
+                grid-column: span 1;
+            }
+
+            .chart-wrapper {
+                height: 220px;
+                padding: 6px 0 18px 28px;
+            }
+
+            /* Table: smaller font + tighter padding, no hard min-width */
+            table {
+                font-size: 0.75rem;
+                min-width: 0;
+            }
+            th, td {
+                padding: 6px 4px;
+            }
+        }
+
+        /* --- Print Styles --- */
+        .print-summary { display: none; }
         
         @media print {
-            body { background: white; color: black; font-size: 11pt; padding: 0; }
-            header button, #themeBtn { display: none !important; }
-            aside { display: none; }
-            .grid-container { display: block; }
-            .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; margin-bottom: 20px; background: white; }
-            .chart-wrapper { border: 1px solid #ccc; background: white; height: 350px; }
-            svg { width: 100%; }
-            .print-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 0.9rem; }
-            .print-summary div { margin-bottom: 5px; }
-            h1 { font-size: 18pt; margin: 0; }
-            header { border-bottom: 2px solid #000; margin-bottom: 20px; }
-            /* Force colors for chart lines in print */
-            .line-con { stroke: #d97706 !important; }
-            .line-mod { stroke: #059669 !important; }
-            .line-hist { stroke: #7c3aed !important; }
-            .stats-grid { grid-template-columns: repeat(5, 1fr); gap: 10px; }
-            .stat-box { border: 1px solid #ccc; background: #fff !important; }
-            .stat-box .sub-value { color: #000; font-weight: bold; }
+            @page { margin: 0.5in; size: letter portrait; }
+            body {
+                background: white;
+                color: black;
+                font-size: 9pt;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                width: 100%;
+                overflow: visible;
+            }
+            header, aside, .header-controls, #tooltip { display: none !important; }
+            
+            .grid-container {
+                display: block;
+                width: 100%;
+                margin: 0;
+            }
+            .card {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                margin-bottom: 20px;
+                background: transparent;
+                page-break-inside: avoid;
+            }
+            .card-header {
+                border-bottom: 1px solid #000;
+                margin-bottom: 10px;
+                padding-bottom: 5px;
+                color: #000;
+                font-size: 11pt;
+            }
+            
+            /* Print Header */
+            .print-summary {
+                display: block;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #000;
+            }
+            .print-summary h1 {
+                font-size: 16pt;
+                margin: 0 0 10px 0;
+            }
+            .print-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                font-size: 10pt;
+            }
+
+            /* Stats Grid Print */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+            .stat-box {
+                border: 1px solid #ccc;
+                padding: 6px;
+                background: #fff !important;
+            }
+            .stat-box h4 {
+                font-size: 7pt;
+                color: #333;
+            }
+            .stat-box .value {
+                font-size: 10pt;
+                color: #000;
+            }
+            .stat-box .sub-value {
+                font-size: 7pt;
+                color: #444;
+            }
+            .stat-box:first-child { grid-column: auto; }
+
+            /* Chart Print */
+            .chart-wrapper {
+                height: 250px;
+                border: 1px solid #ccc;
+                background: white;
+                padding: 10px 10px 20px 30px;
+                page-break-inside: avoid;
+            }
+            .line-con { stroke: #d97706 !important; stroke-width: 1.5px; }
+            .line-mod { stroke: #059669 !important; stroke-width: 1.5px; }
+            .line-hist { stroke: #7c3aed !important; stroke-width: 1.5px; }
+
+            /* Table Print - Compact */
+            .table-container {
+                border: none;
+                overflow: visible;
+                max-height: none;
+                margin-top: 10px;
+            }
+            table {
+                font-size: 8pt;
+                width: 100%;
+                border: 1px solid #ccc;
+                min-width: 0;
+            }
+            th {
+                background: #eee !important;
+                color: #000;
+                border: 1px solid #999;
+                padding: 3px 5px;
+            }
+            td {
+                padding: 3px 5px;
+                border: 1px solid #ddd;
+            }
+            .inc-cell {
+                display: inline;
+                margin-left: 4px;
+                font-size: 7pt;
+                color: #555;
+            }
+            .inc-cell::before { content: "("; }
+            .inc-cell::after { content: ")"; }
+
+            /* Milestones Print - Two Columns */
+            .milestone-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                overflow: visible;
+                max-height: none;
+            }
+            .milestone {
+                padding: 6px;
+                border: 1px solid #ccc;
+                font-size: 8pt;
+                background: white !important;
+                border-left-width: 2px !important;
+            }
+            .milestone .age-badge {
+                background: #eee !important;
+                color: #000;
+                border: 1px solid #999;
+                font-size: 7pt;
+                padding: 2px 4px;
+            }
+            .milestone-details h5 {
+                color: #000;
+                font-size: 9pt;
+                margin-bottom: 2px;
+            }
+            .milestone-details p {
+                color: #333;
+                font-size: 8pt;
+            }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div>
+    <div class="header-content">
         <h1>Retirement Strategy Center</h1>
-        <div style="font-size: 0.9rem; color: var(--text-muted);">Tax-Aware Investment Analysis</div>
+        <div style="font-size: 0.9rem; color: var(--text-muted);">2026 Tax-Aware Analysis</div>
     </div>
     <div class="header-controls">
-        <button onclick="window.print()">🖨️ Print Report</button>
-        <button onclick="toggleTheme()" id="themeBtn">🌙 Dark Mode</button>
-        <button class="btn-primary" onclick="downloadPage()">📥 Download Offline</button>
+        <button class="icon-btn" onclick="window.print()" title="Print Report">🖨️</button>
+        <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">🌙</button>
+        <button class="icon-btn primary-icon" onclick="downloadPage()" title="Download Offline Tool">📥</button>
     </div>
 </header>
 
-<!-- Print Only Summary -->
-<div class="print-summary" id="printSummary">
-    <!-- Populated by JS -->
-</div>
+<!-- Print Only Summary Header -->
+<div class="print-summary" id="printSummary"></div>
 
 <div class="grid-container">
     <!-- Controls Sidebar -->
     <aside>
         <div class="card">
-            <div class="card-header">Profile & Status</div>
+            <div class="card-header">Your Inputs</div>
             
             <div class="input-group">
                 <label>Current Age</label>
@@ -191,7 +727,7 @@
             </div>
 
             <div class="input-group">
-                <label>Tax Filing Status</label>
+                <label>Filing Status</label>
                 <select id="filingStatus" onchange="updateAll()">
                     <option value="single">Single</option>
                     <option value="mfj_single">Married (Single Earner)</option>
@@ -200,50 +736,104 @@
             </div>
             
             <div class="input-group">
-                <label>Current Total Portfolio ($)</label>
+                <label>Current Portfolio Value ($)</label>
                 <input type="number" id="currentBalance" value="528000" step="1000" oninput="updateAll()">
             </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Contributions strategy</div>
             
             <div class="input-group">
-                <label>Total Annual Contribution ($)</label>
-                <input type="number" id="annualContribution" value="30500" step="500" oninput="updateAll()">
-                <div style="font-size: 0.75rem; color: var(--accent-orange); margin-top: 5px;" id="overflowWarning"></div>
-            </div>
-
-            <div class="input-group">
-                <label>Years to Project (Retirement Age)</label>
+                <label>Years to Project</label>
                 <div class="range-wrapper">
                     <input type="range" id="years" min="5" max="40" value="25" oninput="updateAll()">
                     <span class="range-val" id="yearsDisplay">25</span>
                 </div>
             </div>
+        </div>
 
-            <div class="links-section">
-                <div class="card-header" style="font-size: 0.9rem; border: none; padding: 0; margin-bottom: 10px;">Brokerage Links</div>
-                <div class="link-grid">
-                    <a href="https://www.fidelity.com/open-account/overview" target="_blank" class="ext-link">Fidelity</a>
-                    <a href="https://move-money.web.vanguard.com/get-started" target="_blank" class="ext-link">Vanguard</a>
-                </div>
+        <div class="card">
+            <div class="card-header">Contribution Strategy</div>
+            
+            <div class="input-group">
+                <label>Annual Investment ($)</label>
+                <input type="number" id="annualContribution" value="30500" step="500" oninput="updateAll()">
+            </div>
+
+            <div class="breakdown-box" id="contribBreakdown">
+                <!-- Populated via JS -->
             </div>
         </div>
 
         <div class="card">
             <div class="card-header">Strategy Insight</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
-                <p style="margin-bottom: 10px;">
-                    <strong>The 50/50 Split:</strong> This strategy splits funds equally between <span class="tag tag-vti">VTI</span> and <span class="tag tag-voo">VOO</span>.
-                </p>
-                <ul style="padding-left: 20px; margin-bottom: 10px;">
-                    <li><strong>VOO (S&P 500):</strong> The 500 largest US companies. A "pure play" on large-cap stability and profitability.</li>
-                    <li><strong>VTI (Total Market):</strong> 3,700+ companies. Includes VOO plus thousands of mid/small-cap stocks.</li>
-                </ul>
-                <p>
-                    <strong>Why do this?</strong> Correlation is 99%. While they move together, this split ensures you capture the "Whole Economy" (VTI) while slightly overweighting the "Proven Winners" (VOO).
-                </p>
+            <div class="strategy-body">
+                <div>
+                    <h4>The “Barbell” Approach</h4>
+                    <p>
+                        Think of your portfolio as a barbell: one plate is <span class="tag tag-voo">VOO</span> (large, profitable U.S. companies), 
+                        the other plate is <span class="tag tag-vti">VTI</span> (the entire U.S. stock market). The bar in the middle is your 
+                        tax-advantaged accounts (401(k), IRA) plus taxable brokerage.
+                    </p>
+                </div>
+
+                <div>
+                    <h4>Where New Contributions Go</h4>
+                    <p>
+                        The contribution breakdown routes dollars into:
+                    </p>
+                    <ul>
+                        <li><strong>401(k) / 403(b):</strong> Pre-tax or Roth contributions, usually your biggest tax-advantaged bucket.</li>
+                        <li><strong>IRAs (Roth/Traditional):</strong> Personal and spousal IRAs to add more tax shelter.</li>
+                        <li><strong>Taxable Brokerage:</strong> Flexible, easy-access money (good for early retirement or bridge years), but fully taxable.</li>
+                    </ul>
+                    <p style="font-size:0.78rem;">
+                        The engine here is: max out 401(k) first, then IRAs, then let excess flow into taxable brokerage.
+                        That keeps more of your growth sheltered while still building a flexible pool of money you can tap before traditional retirement age.
+                    </p>
+                </div>
+
+                <div>
+                    <h4>VOO – S&P 500 Core</h4>
+                    <p>
+                        <span class="tag tag-voo">VOO</span> tracks the S&P 500: roughly 500 large, profitable U.S. companies across sectors 
+                        (technology, healthcare, financials, industrials, consumer, etc.). It is often used as the “engine” of a portfolio because:
+                    </p>
+                    <ul>
+                        <li>Broad diversification across the largest U.S. businesses.</li>
+                        <li>Historically strong risk-adjusted returns.</li>
+                        <li>Low-cost, simple, and easy to maintain.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4>VTI – Total U.S. Market</h4>
+                    <p>
+                        <span class="tag tag-vti">VTI</span> owns almost the entire U.S. stock market: VOO’s large caps <em>plus</em> thousands of mid and small caps.
+                        It acts as your “safety net” for capturing unexpected breakouts in smaller companies.
+                    </p>
+                    <ul>
+                        <li>Includes VOO’s holdings plus ~3,000 additional mid- and small-cap names.</li>
+                        <li>More exposure to small/mid-cap volatility and upside.</li>
+                        <li>Pairs well with VOO (e.g., 50/50 or 60/40) to keep things simple but broad.</li>
+                    </ul>
+                </div>
+
+                <div class="broker-links">
+                    <strong>Open an account:</strong>
+                    <ul>
+                        <li>
+                            <a href="https://investor.vanguard.com/home" target="_blank" rel="noopener noreferrer">
+                                Open an account at Vanguard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.fidelity.com/open-account/overview" target="_blank" rel="noopener noreferrer">
+                                Open an account at Fidelity
+                            </a>
+                        </li>
+                    </ul>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">
+                        (This tool is for education only and does not replace personalized investment advice.)
+                    </span>
+                </div>
             </div>
         </div>
     </aside>
@@ -253,7 +843,7 @@
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-box highlight">
-                <h4>Retirement Age</h4>
+                <h4>Retire Age</h4>
                 <div class="value" id="endAge">65</div>
                 <div class="sub-value">Target</div>
             </div>
@@ -273,7 +863,7 @@
                 <div class="sub-value" id="incMod">$11k/mo</div>
             </div>
             <div class="stat-box purple">
-                <h4>Hist 10y (12.9%)</h4>
+                <h4>Hist (12.9%)</h4>
                 <div class="value" id="resHist">$6.2M</div>
                 <div class="sub-value" id="incHist">$20k/mo</div>
             </div>
@@ -283,10 +873,10 @@
         <div class="card">
             <div class="card-header">
                 Growth Projection
-                <div style="font-size: 0.75rem; font-weight: 500; display: flex; gap: 15px; flex-wrap: wrap;">
-                    <span style="color: var(--accent-purple)">-- Hist (12.9%)</span>
-                    <span style="color: var(--accent-green)">── Mod (10%)</span>
-                    <span style="color: var(--accent-orange)">── Consrv (7%)</span>
+                <div style="font-size: 0.75rem; font-weight: 500; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <span style="color: var(--accent-purple)">-- Hist</span>
+                    <span style="color: var(--accent-green)">── Mod</span>
+                    <span style="color: var(--accent-orange)">── Consrv</span>
                 </div>
             </div>
             
@@ -294,30 +884,66 @@
                 <svg id="mainChart" preserveAspectRatio="none"></svg>
                 <div id="tooltip" class="tooltip"></div>
             </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; text-align: right;">
-                *Historical based on VTI/VOO blended 10y annualized returns (approx. 2014-2024).<br>
-                *Monthly income estimates based on 4% Safe Withdrawal Rate (Annual/12).
-            </div>
         </div>
 
-        <!-- Milestones List -->
+        <!-- Yearly Data Table -->
         <div class="card">
-            <div class="card-header">Future Milestones & Access</div>
-            <div id="milestoneList" class="milestone-container">
-                <!-- Populated by JS -->
+            <div class="card-header">Yearly Performance Potentials</div>
+
+            <div class="swr-controls">
+                <span>Withdrawal rate for income estimates:</span>
+                <select id="swrSelect" onchange="updateAll()">
+                    <option value="0.03">3%</option>
+                    <option value="0.04" selected>4%</option>
+                    <option value="0.05">5%</option>
+                    <option value="0.06">6%</option>
+                </select>
+                <span style="font-size:0.75rem;">
+                    Higher % = more income now, higher risk of depleting the portfolio sooner.
+                </span>
             </div>
+
+            <div class="table-explainer">
+                Each row shows the projected end-of-year balance for each growth assumption. The smaller gray line
+                under each dollar amount is an estimated monthly income if you withdrew 
+                <strong><span id="swrLabel">4%</span> per year</strong> from that balance, split into 12 equal monthly payments.
+            </div>
+
+            <div class="table-container">
+                <table id="projTable">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Age</th>
+                            <th>Total Invested</th>
+                            <th>Standard (7%)</th>
+                            <th>Moderate (10%)</th>
+                            <th>Historical (12.9%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Milestones -->
+        <div class="card">
+            <div class="card-header">Key Milestones</div>
+            <div id="milestoneList" class="milestone-container"></div>
         </div>
     </main>
 </div>
 
 <script>
-    // Constants for 2025/2026 Limits
+    // 2026 Limits
     const LIMITS = {
-        base401k: 23500,
+        base401k: 24500, 
         catchUp401k: 7500,
         superCatchUp401k: 11250, // Ages 60-63
-        baseIRA: 7000,
-        catchUpIRA: 1000
+        baseIRA: 7500, 
+        catchUpIRA: 1000 
     };
 
     const STATE = {
@@ -326,7 +952,8 @@
         balance: 528000,
         contribution: 30500,
         years: 25,
-        status: 'single'
+        status: 'single',
+        withdrawalRate: 0.04
     };
 
     function init() {
@@ -339,86 +966,175 @@
     function toggleTheme() {
         STATE.theme = STATE.theme === 'light' ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', STATE.theme);
-        document.getElementById('themeBtn').innerText = STATE.theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+        document.getElementById('themeBtn').innerText = STATE.theme === 'dark' ? '☀️' : '🌙';
     }
 
     function downloadPage() {
-        const html = document.documentElement.outerHTML;
-        const blob = new Blob([html], {type: 'text/html'});
+        // Create a clone of the document to modify for saving
+        const docClone = document.documentElement.cloneNode(true);
+        
+        // Preserve current input values into the HTML attributes
+        docClone.querySelector('#age').setAttribute('value', STATE.age);
+        docClone.querySelector('#currentBalance').setAttribute('value', STATE.balance);
+        docClone.querySelector('#annualContribution').setAttribute('value', STATE.contribution);
+        docClone.querySelector('#years').setAttribute('value', STATE.years);
+        
+        // Handle select
+        const statusSelect = docClone.querySelector('#filingStatus');
+        const options = statusSelect.querySelectorAll('option');
+        options.forEach(opt => {
+            if (opt.value === STATE.status) opt.setAttribute('selected', 'selected');
+            else opt.removeAttribute('selected');
+        });
+
+        // Handle withdrawal rate select
+        const swrSelectClone = docClone.querySelector('#swrSelect');
+        if (swrSelectClone) {
+            Array.from(swrSelectClone.options).forEach(opt => {
+                if (parseFloat(opt.value) === STATE.withdrawalRate) {
+                    opt.setAttribute('selected', 'selected');
+                } else {
+                    opt.removeAttribute('selected');
+                }
+            });
+        }
+
+        const htmlContent = docClone.outerHTML;
+        const blob = new Blob([htmlContent], {type: 'text/html'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'retirement_strategy_tool.html';
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
     }
 
     function updateAll() {
+        // Update State from inputs
         STATE.age = parseInt(document.getElementById('age').value);
         STATE.years = parseInt(document.getElementById('years').value);
         STATE.balance = parseFloat(document.getElementById('currentBalance').value);
         STATE.contribution = parseFloat(document.getElementById('annualContribution').value);
         STATE.status = document.getElementById('filingStatus').value;
 
+        // Withdrawal rate
+        const swrSelect = document.getElementById('swrSelect');
+        if (swrSelect) {
+            STATE.withdrawalRate = parseFloat(swrSelect.value);
+        }
+        const swrLabel = document.getElementById('swrLabel');
+        if (swrLabel) {
+            const pct = (STATE.withdrawalRate * 100).toFixed(1).replace(/\.0$/, '');
+            swrLabel.innerText = pct + '%';
+        }
+
+        // Displays
         document.getElementById('ageDisplay').innerText = STATE.age;
         document.getElementById('yearsDisplay').innerText = STATE.years;
         document.getElementById('endAge').innerText = STATE.age + STATE.years;
 
-        const results = calculateGrowth();
-        
-        const final = results[results.length-1];
-        
         // Update Print Summary
-        document.getElementById('printSummary').innerHTML = `
-            <div><strong>Starting Age:</strong> ${STATE.age}</div>
-            <div><strong>Starting Balance:</strong> ${formatMoneyCompact(STATE.balance)}</div>
-            <div><strong>Annual Contrib:</strong> ${formatMoneyCompact(STATE.contribution)}</div>
-            <div><strong>Projection:</strong> ${STATE.years} Years (Retire at ${STATE.age + STATE.years})</div>
-            <div><strong>Filing Status:</strong> ${STATE.status}</div>
-            <div style="grid-column: 1/-1; margin-top:10px; border-top:1px solid #000; padding-top:5px;"><strong>Projected Monthly Income (4% Rule):</strong></div>
-            <div>Conservative: ${formatMonthlyIncome(final.con)}</div>
-            <div>Moderate: ${formatMonthlyIncome(final.mod)}</div>
-            <div>Historical: ${formatMonthlyIncome(final.hist)}</div>
+        const summary = document.getElementById('printSummary');
+        summary.innerHTML = `
+            <h1>Retirement Strategy Report</h1>
+            <div class="print-grid">
+                <div><strong>Projection:</strong> Age ${STATE.age} to ${STATE.age + STATE.years}</div>
+                <div><strong>Status:</strong> ${STATE.status.replace('_', ' ').toUpperCase()}</div>
+                <div><strong>Start Balance:</strong> ${formatMoneyCompact(STATE.balance)}</div>
+                <div><strong>Annual Contrib:</strong> ${formatMoneyCompact(STATE.contribution)}</div>
+            </div>
         `;
 
-        document.getElementById('totalInvested').innerText = formatMoneyCompact(final.invested);
+        // Calc
+        const results = calculateGrowth();
+        const final = results[results.length-1];
         
-        // Update Stats Boxes with Income
+        // Update Breakdown
+        renderBreakdown(results[0].limits); // Use first year limits for display context
+
+        // Update Stats
+        document.getElementById('totalInvested').innerText = formatMoneyCompact(final.invested);
         document.getElementById('resMod').innerText = formatMoneyCompact(final.mod);
         document.getElementById('incMod').innerText = formatMonthlyIncome(final.mod);
-        
         document.getElementById('resCon').innerText = formatMoneyCompact(final.con);
         document.getElementById('incCon').innerText = formatMonthlyIncome(final.con);
-        
         document.getElementById('resHist').innerText = formatMoneyCompact(final.hist);
         document.getElementById('incHist').innerText = formatMonthlyIncome(final.hist);
 
+        // Render Viz
         renderChart(results);
-        renderMilestones(results);
-        updateOverflowWarning(results[0].limit);
+        renderTable(results);
+        renderMilestones(STATE.age);
     }
 
-    function formatMonthlyIncome(totalBalance) {
-        const annualSafeWithdrawal = totalBalance * 0.04;
-        const monthly = annualSafeWithdrawal / 12;
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(monthly) + "/mo";
-    }
+    function calculateLimits(age, status) {
+        // 1. Calculate Max Capacity for each bucket based on Age & Status
+        let max401k = LIMITS.base401k;
+        let maxIRA = LIMITS.baseIRA;
 
-    function getYearlyLimit(age, status) {
-        let limit = 0;
-        limit += LIMITS.base401k;
-        if (age >= 60 && age <= 63) {
-            limit += LIMITS.superCatchUp401k;
-        } else if (age >= 50) {
-            limit += LIMITS.catchUp401k;
+        // Age logic
+        if (age >= 60 && age <= 63) max401k += LIMITS.superCatchUp401k;
+        else if (age >= 50) max401k += LIMITS.catchUp401k;
+        
+        if (age >= 50) maxIRA += LIMITS.catchUpIRA;
+
+        // Status Logic
+        if (status === 'mfj_single') {
+            // 1 Earner: 1x 401k, 2x IRA (Spousal)
+            maxIRA *= 2; 
+        } else if (status === 'mfj_dual') {
+            // 2 Earners: 2x 401k, 2x IRA
+            max401k *= 2;
+            maxIRA *= 2;
         }
 
-        let iraSpace = LIMITS.baseIRA;
-        if (age >= 50) iraSpace += LIMITS.catchUpIRA;
+        return { max401k, maxIRA };
+    }
 
-        if (status === 'mfj_single') limit += (iraSpace * 2); 
-        else if (status === 'mfj_dual') limit = (limit * 2) + (iraSpace * 2);
-        else limit += iraSpace;
+    function renderBreakdown(limits) {
+        let remaining = STATE.contribution;
+        
+        // Priority Fill: 401k -> IRA -> Taxable
+        let fill401k = Math.min(remaining, limits.max401k);
+        remaining -= fill401k;
+        
+        let fillIRA = Math.min(remaining, limits.maxIRA);
+        remaining -= fillIRA;
+        
+        let fillTaxable = remaining; // Whatever is left
 
-        return limit;
+        const total = STATE.contribution || 1; // avoid division by zero
+        const p401 = total > 0 ? Math.round((fill401k / total) * 100) : 0;
+        const pIRA = total > 0 ? Math.round((fillIRA / total) * 100) : 0;
+        const pTax = total > 0 ? Math.round((fillTaxable / total) * 100) : 0;
+
+        const pieces = [];
+        if (fill401k > 0) pieces.push(`${p401}% into 401(k)/403(b)`);
+        if (fillIRA > 0) pieces.push(`${pIRA}% into IRAs (Roth/Trad)`);
+        if (fillTaxable > 0) pieces.push(`${pTax}% into taxable brokerage`);
+
+        const box = document.getElementById('contribBreakdown');
+        box.innerHTML = `
+            <div class="breakdown-row">
+                <span class="bd-label"><span class="dot" style="background:var(--accent-green)"></span> 401(k) / 403(b)</span>
+                <span class="bd-val">$${fill401k.toLocaleString()}</span>
+            </div>
+            <div class="breakdown-row">
+                <span class="bd-label"><span class="dot" style="background:var(--accent-purple)"></span> IRA (Roth/Trad)</span>
+                <span class="bd-val">$${fillIRA.toLocaleString()}</span>
+            </div>
+            <div class="breakdown-row">
+                <span class="bd-label"><span class="dot" style="background:var(--accent-orange)"></span> Taxable Brokerage</span>
+                <span class="bd-val">$${fillTaxable.toLocaleString()}</span>
+            </div>
+            <div class="breakdown-row">
+                <span class="bd-label">Total Annual</span>
+                <span class="bd-val">$${STATE.contribution.toLocaleString()}</span>
+            </div>
+            <div class="breakdown-notes">
+                Routing summary: ${pieces.length ? pieces.join(", ") : "no contributions entered yet."}
+            </div>
+        `;
     }
 
     function calculateGrowth() {
@@ -430,26 +1146,27 @@
         let currentAge = STATE.age;
         
         for (let i = 0; i <= STATE.years; i++) {
-            const yearLimit = getYearlyLimit(currentAge, STATE.status);
+            // Recalculate limits every year as age changes (Catch-up triggers)
+            const limits = calculateLimits(currentAge, STATE.status);
             
             data.push({
-                year: i,
+                year: new Date().getFullYear() + i,
+                relYear: i,
                 age: currentAge,
                 con: curCon,
                 mod: curMod,
                 hist: curHist,
                 invested: invested,
-                limit: yearLimit
+                limits: limits
             });
 
             if (i < STATE.years) {
                 let contrib = STATE.contribution;
                 invested += contrib;
                 
-                // Monthly Compounding approximation
+                // Monthly Compounding
                 const mRateCon = 0.07 / 12;
                 const mRateMod = 0.10 / 12;
-                // Updated to 12.9% for 10-year blended average (2014-2024 VTI/VOO blend)
                 const mRateHist = 0.129 / 12; 
                 const mContrib = contrib / 12;
 
@@ -464,14 +1181,30 @@
         return data;
     }
 
-    function updateOverflowWarning(limit) {
-        const div = document.getElementById('overflowWarning');
-        if (STATE.contribution > limit) {
-            div.innerHTML = `⚠️ Exceeds Tax-Advantaged Limit ($${limit.toLocaleString()}).<br>Excess $${(STATE.contribution - limit).toLocaleString()} goes to Taxable Brokerage.`;
-        } else {
-            div.innerHTML = `✅ Fully Tax-Advantaged (Capacity: $${limit.toLocaleString()})`;
-            div.style.color = 'var(--accent-green)';
-        }
+    function renderTable(data) {
+        const tbody = document.querySelector('#projTable tbody');
+        tbody.innerHTML = '';
+        data.forEach(d => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${d.year}</strong></td>
+                <td>${d.age}</td>
+                <td>${formatMoneyCompact(d.invested)}</td>
+                <td>
+                    ${formatMoneyCompact(d.con)}
+                    <span class="inc-cell">${formatMonthlyIncome(d.con)}</span>
+                </td>
+                <td>
+                    <strong style="color:var(--accent-green)">${formatMoneyCompact(d.mod)}</strong>
+                    <span class="inc-cell">${formatMonthlyIncome(d.mod)}</span>
+                </td>
+                <td>
+                    <span style="color:var(--accent-purple)">${formatMoneyCompact(d.hist)}</span>
+                    <span class="inc-cell">${formatMonthlyIncome(d.hist)}</span>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     function renderChart(data) {
@@ -479,22 +1212,65 @@
         svg.innerHTML = '';
         const w = svg.clientWidth;
         const h = svg.clientHeight;
-        const pad = 40;
+        const padLeft = 40;
+        const padRight = 10;
+        const padTop = 10;
+        const padBottom = 20;
 
-        // Scale based on Historical max for headroom
         const maxVal = Math.max(...data.map(d => d.hist)) * 1.1;
         
-        const xScale = (i) => pad + (i / (data.length - 1)) * (w - pad * 2);
-        const yScale = (v) => h - pad - (v / maxVal) * (h - pad * 2);
+        const xScale = (i) => padLeft + (i / (data.length - 1)) * (w - padLeft - padRight);
+        const yScale = (v) => h - padBottom - (v / maxVal) * (h - padTop - padBottom);
 
-        // Grid
+        // Horizontal grid + Y-axis labels
         for(let i=0; i<=5; i++) {
-            const y = h - pad - (i/5)*(h - pad*2);
-            const line = createSVG('line', { x1: pad, y1: y, x2: w-pad, y2: y, class: 'grid-line' });
-            const text = createSVG('text', { x: pad - 5, y: y + 4, 'text-anchor': 'end', style: 'font-size: 10px; fill: var(--text-muted);' });
-            text.textContent = formatMoneyCompact((maxVal/5)*i);
+            const val = (maxVal/5)*i;
+            const y = yScale(val);
+            
+            const line = createSVG('line', { x1: padLeft, y1: y, x2: w-padRight, y2: y, class: 'grid-line' });
+            const text = createSVG('text', { x: padLeft - 5, y: y + 3, 'text-anchor': 'end', class: 'chart-label' });
+            text.textContent = formatMoneyCompact(val);
             svg.appendChild(line);
             svg.appendChild(text);
+        }
+
+        // X-axis line
+        const axisY = h - padBottom;
+        svg.appendChild(createSVG('line', {
+            x1: padLeft,
+            y1: axisY,
+            x2: w - padRight,
+            y2: axisY,
+            class: 'axis-line'
+        }));
+
+        // X-axis year labels (roughly 6 ticks)
+        const step = Math.max(1, Math.floor(data.length / 6));
+        for (let i = 0; i < data.length; i += step) {
+            const d = data[i];
+            const x = xScale(i);
+            const text = createSVG('text', {
+                x,
+                y: axisY + 12,
+                'text-anchor': 'middle',
+                class: 'chart-label'
+            });
+            text.textContent = d.year;
+            svg.appendChild(text);
+        }
+        // Ensure last year label is shown
+        const lastIndex = data.length - 1;
+        if ((lastIndex % step) !== 0) {
+            const dLast = data[lastIndex];
+            const xLast = xScale(lastIndex);
+            const textLast = createSVG('text', {
+                x: xLast,
+                y: axisY + 12,
+                'text-anchor': 'middle',
+                class: 'chart-label'
+            });
+            textLast.textContent = dLast.year;
+            svg.appendChild(textLast);
         }
 
         // Paths
@@ -512,66 +1288,64 @@
         svg.appendChild(createSVG('path', { d: pathMod, class: 'line-mod' }));
         svg.appendChild(createSVG('path', { d: pathHist, class: 'line-hist' }));
 
-        // Milestone Markers (Only draw if inside chart range)
-        data.forEach((d, i) => {
-            const importantAges = [50, 55, 60, 65, 73];
-            if (importantAges.includes(d.age) && i > 0 && i < data.length-1) {
-                const x = xScale(i);
-                svg.appendChild(createSVG('line', { x1: x, y1: pad, x2: x, y2: h-pad, stroke: 'var(--text-muted)', 'stroke-dasharray': '2', 'stroke-opacity': 0.5 }));
-                const label = createSVG('text', { x: x, y: h-15, 'text-anchor': 'middle', style: 'font-size: 10px; fill: var(--text-muted); font-weight: bold;' });
-                label.textContent = d.age;
-                svg.appendChild(label);
-            }
+        // Interactive Overlay
+        const overlay = createSVG('rect', {
+            x: padLeft,
+            y: padTop,
+            width: w - padLeft - padRight,
+            height: h - padTop - padBottom,
+            fill: 'transparent'
         });
-        
-        // Interaction overlay
-        const overlay = createSVG('rect', { x: pad, y: pad, width: w-pad*2, height: h-pad*2, fill: 'transparent' });
+
         overlay.onmousemove = (e) => {
             const rect = svg.getBoundingClientRect();
             const x = e.clientX - rect.left;
-            const ratio = (x - pad) / (w - pad*2);
+            const ratio = (x - padLeft) / (w - padLeft - padRight);
             let idx = Math.round(ratio * (data.length - 1));
-            if (idx < 0) idx = 0; if (idx >= data.length) idx = data.length - 1;
+            if (idx < 0) idx = 0;
+            if (idx >= data.length) idx = data.length - 1;
             
             const pt = data[idx];
             const tooltip = document.getElementById('tooltip');
-            tooltip.style.left = Math.min(x + 10, w - 150) + 'px';
-            tooltip.style.top = (yScale(pt.mod) - 60) + 'px';
+            
+            // Tooltip position near edges
+            let toolX = Math.min(Math.max(x + 10, 0), w - 10);
+            let toolY = Math.max(yScale(pt.mod) - 70, 10);
+
+            tooltip.style.left = toolX + 'px';
+            tooltip.style.top = toolY + 'px';
             tooltip.style.opacity = 1;
             tooltip.innerHTML = `
-                <strong>Age ${pt.age}</strong> (Year ${pt.year})<br>
-                <span style="color:var(--accent-purple)">Hist: ${formatMoneyCompact(pt.hist)}</span><br>
-                <span style="color:var(--accent-green)">Mod: ${formatMoneyCompact(pt.mod)}</span><br>
-                <span style="color:var(--accent-orange)">Con: ${formatMoneyCompact(pt.con)}</span>
+                <strong>Age ${pt.age}</strong> (${pt.year})<br>
+                Hist: ${formatMoneyCompact(pt.hist)}<br>
+                Mod: ${formatMoneyCompact(pt.mod)}<br>
+                Con: ${formatMoneyCompact(pt.con)}
             `;
         };
-        overlay.onmouseleave = () => { document.getElementById('tooltip').style.opacity = 0; };
+        overlay.onmouseleave = () => {
+            document.getElementById('tooltip').style.opacity = 0;
+        };
         svg.appendChild(overlay);
     }
 
-    function renderMilestones(data) {
+    function renderMilestones(currentAge) {
         const container = document.getElementById('milestoneList');
         container.innerHTML = '';
 
         const events = [
-            { age: 50, title: "Catch-Up Contributions Begin", desc: "You can now contribute significantly more to tax-advantaged accounts (+$7,500 to 401k, +$1,000 to IRA). This is the 'Sprint to the Finish'." },
-            { age: 55, title: "Rule of 55", desc: "If you leave your job in or after the year you turn 55, you can withdraw from your <strong>current</strong> employer's 401k penalty-free. (Does not apply to old 401ks or IRAs)." },
-            { age: 59, title: "59½: Full Access", desc: "The penalty flag is lifted. You can withdraw from all 401ks and IRAs without the 10% early withdrawal penalty. This is true financial independence." },
-            { age: 60, title: "Secure 2.0 Super Catch-Up", desc: "For ages 60-63 specifically, catch-up limits increase to ~$11,250 (indexed). This is a narrow window for maximum tax sheltering." },
-            { age: 65, title: "Medicare & HSA", desc: "You become eligible for Medicare. If you have an HSA, you can now withdraw funds for non-medical reasons without penalty (though you pay income tax)." },
-            { age: 67, title: "Social Security Full Retirement", desc: "For those born after 1960, this is when you get 100% of your benefit. Claiming earlier (62) reduces it permanently; delaying to 70 increases it." },
-            { age: 73, title: "RMDs Begin", desc: "Uncle Sam wants his cut. You <strong>must</strong> start withdrawing from Traditional 401ks/IRAs. Roth accounts are exempt." }
+            { age: 50, title: "Catch-Up Contributions", desc: "+$7.5k to 401k, +$1k to IRA." },
+            { age: 55, title: "Rule of 55", desc: "Penalty-free 401k withdrawals if separating from service." },
+            { age: 59, title: "59½ Full Access", desc: "Penalty-free withdrawals from all retirement accounts." },
+            { age: 60, title: "Super Catch-Up (60-63)", desc: "401k Catch-up increases to ~$11,250." },
+            { age: 65, title: "Medicare Eligibility", desc: "Primary health insurance coverage begins." },
+            { age: 67, title: "Social Security Full Age", desc: "100% benefit amount available." },
+            { age: 73, title: "RMDs Begin", desc: "Mandatory withdrawals from Traditional accounts." }
         ];
 
-        const startAge = data[0].age;
-        
         events.forEach(ev => {
-            // Show milestone if it is in the future relative to start age
-            // We no longer cap it by the 'endAge' of the projection
-            if (ev.age >= startAge) {
-                const isActive = ev.age === startAge;
+            if (ev.age >= currentAge) {
                 const div = document.createElement('div');
-                div.className = `milestone ${isActive ? 'active' : ''}`;
+                div.className = `milestone ${ev.age === currentAge ? 'active' : ''}`;
                 div.innerHTML = `
                     <div class="age-badge">${ev.age}</div>
                     <div class="milestone-details">
@@ -591,11 +1365,26 @@
     }
 
     function formatMoneyCompact(n) {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: "compact", maximumFractionDigits: 1 }).format(n);
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            notation: "compact",
+            maximumFractionDigits: 1
+        }).format(n);
+    }
+    
+    function formatMonthlyIncome(totalBalance) {
+        const rate = STATE.withdrawalRate || 0.04;
+        const monthly = (totalBalance * rate) / 12;
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 0
+        }).format(monthly) + "/mo";
     }
 
     init();
-    window.addEventListener('resize', () => { renderChart(calculateGrowth()); });
+    window.addEventListener('resize', updateAll);
 </script>
 </body>
 </html>
