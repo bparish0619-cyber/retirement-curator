@@ -6,33 +6,33 @@
     <title>Retirement Strategy Analyzer</title>
     <style>
         :root {
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
+            --bg-color: #f4f3ec;
+            --card-bg: #fffdf9;
             --text-main: #1e293b;
             --text-muted: #64748b;
-            --border: #e2e8f0;
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
+            --border: #d5d2c2;
+            --primary: #9a7208;
+            --primary-hover: #7c5c06;
             --accent-green: #059669;
             --accent-orange: #d97706;
             --accent-purple: #7c3aed;
-            --chart-grid: #e2e8f0;
-            --milestone-bg: #f1f5f9;
+            --chart-grid: #d5d2c2;
+            --milestone-bg: #eceade;
         }
 
         [data-theme="dark"] {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --bg-color: #14161c;
+            --card-bg: #1d2029;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --border: #334155;
-            --primary: #3b82f6;
-            --primary-hover: #60a5fa;
+            --border: #2c303e;
+            --primary: #e8b33c;
+            --primary-hover: #c9a227;
             --accent-green: #34d399;
             --accent-orange: #fbbf24;
             --accent-purple: #a78bfa;
-            --chart-grid: #334155;
-            --milestone-bg: #334155;
+            --chart-grid: #2c303e;
+            --milestone-bg: #232635;
         }
 
         /* GLOBAL FIXES FOR MOBILE OVERFLOW */
@@ -92,7 +92,7 @@
             cursor: pointer;
             width: 42px;
             height: 42px;
-            border-radius: 8px;
+            border-radius: 12px;
             border: 1px solid var(--border);
             background: var(--card-bg);
             color: var(--text-main);
@@ -137,7 +137,7 @@
         /* --- Cards --- */
         .card {
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 16px;
             border: 1px solid var(--border);
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             padding: 15px;
@@ -165,7 +165,7 @@
         .input-group select {
             width: 100%;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 12px;
             border: 1px solid var(--border);
             background: var(--bg-color);
             color: var(--text-main);
@@ -200,7 +200,7 @@
         /* --- Breakdown Box --- */
         .breakdown-box {
             background: var(--milestone-bg);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 12px;
             font-size: 0.85rem;
             border: 1px solid var(--border);
@@ -251,7 +251,7 @@
         .stat-box { 
             padding: 12px; 
             background: var(--bg-color); 
-            border-radius: 8px; 
+            border-radius: 12px; 
             border: 1px solid var(--border); 
             min-width: 0;
         }
@@ -297,7 +297,7 @@
             position: relative; 
             margin-top: 20px; 
             border: 1px solid var(--border); 
-            border-radius: 8px; 
+            border-radius: 12px; 
             padding: 10px 5px 25px 35px; 
             background: var(--bg-color); 
             overflow: hidden; 
@@ -319,7 +319,7 @@
             overflow-x: auto; 
             -webkit-overflow-scrolling: touch; 
             margin-top: 10px; 
-            border-radius: 8px; 
+            border-radius: 12px; 
             border: 1px solid var(--border); 
             max-height: 400px;
             width: 100%;
@@ -403,7 +403,7 @@
             display: flex;
             gap: 12px;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 12px;
             background: var(--milestone-bg);
             border-left: 4px solid var(--text-muted);
             align-items: flex-start;
@@ -724,12 +724,25 @@
                 font-size: 8pt;
             }
         }
+    
+        /* ============================================================
+           NORTHBRAND DNA (added 2026-10-27)
+           Brand tokens and the footer lockup follow the Northbrand
+           design DNA in ~/workspace/northbrand-hub/DESIGN.md.
+           The strategy accent colors above are data colors and stay.
+           ============================================================ */
+        .nb-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--primary); font-weight: 700; margin-bottom: 4px; }
+        header h1 { font-family: Georgia, 'Times New Roman', serif; }
+        .nb-footer { text-align: center; padding: 28px 16px 36px; color: var(--text-muted); font-size: 0.85rem; }
+        .nb-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .nb-footer .nb-footer-sub { margin-top: 6px; }
     </style>
 </head>
 <body>
 
 <header>
     <div class="header-content">
+        <div class="nb-eyebrow">Northbrand Collective</div>
         <h1>Retirement Strategy Center</h1>
         <div style="font-size: 0.9rem; color: var(--text-muted);">2026 Tax-Aware Analysis</div>
     </div>
@@ -1481,5 +1494,10 @@
     init();
     window.addEventListener('resize', updateAll);
 </script>
+
+<footer class="nb-footer">
+    <p>A <strong>Northbrand Collective</strong> project &middot; <a href="https://northbrand.net">northbrand.net</a></p>
+    <p class="nb-footer-sub">Simulations based on VOO and VTI outcomes. Educational only, not financial advice.</p>
+</footer>
 </body>
 </html>
