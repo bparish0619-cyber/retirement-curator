@@ -173,6 +173,10 @@
         .pay-guidance { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
         .pay-guidance h4 { font-size: 0.95rem; margin-bottom: 4px; }
         .pay-guidance .input-group input[type="number"] { width: 100%; }
+        /* Pay conversion readout: the three-unit lines wrap under their labels on narrow screens instead of squeezing. */
+        #payConversionBox { margin-top: 12px; }
+        #payConversionBox .breakdown-row { flex-wrap: wrap; column-gap: 10px; }
+        #payConversionBox .bd-val { overflow-wrap: anywhere; }
         .guide-warning { color: var(--accent-orange); font-weight: 600; }
         #limitsTable { min-width: 780px; }
         .visually-hidden {
@@ -577,6 +581,9 @@
                     <p class="help">Hourly pay is annualized with 52 weeks: hourly amount times hours per week times 52.</p>
                 </div>
                 <p class="help">For two earners, entering combined annual pay gives the clearest household savings rate.</p>
+                <div class="breakdown-box" id="payConversionBox">
+                    <div class="breakdown-notes" style="margin-top:0;">Enter pay above to see it converted between hourly, monthly, and annual, and to see what share of it you invest.</div>
+                </div>
             </div>
         </div>
 
@@ -1014,6 +1021,7 @@
                 <ul>
                     <li>Pay is gross pay, before taxes and deductions. Hourly pay is annualized as hourly amount times hours per week times 52. Monthly pay is multiplied by 12. Annual pay is used as entered.</li>
                     <li>Current and required savings rates divide annual saving by estimated gross annual pay. Pay is optional and does not change any projection, limit, or routing calculation.</li>
+                    <li>Pay conversions: the hourly equivalent spreads annual pay across the hours-per-week setting times 52 weeks, and monthly pay is annual pay divided by 12. Investing percentages and per work hour figures are all against gross pay.</li>
                 </ul>
                 <h4>Inflation and today's dollars</h4>
                 <ul>
@@ -1444,17 +1452,44 @@ function getInputs() {
     };
 }
 
-// Optional gross pay, annualized for savings-rate guidance only. Blank,
-// zero, and invalid amounts mean no pay was provided, so callers show a
-// prompt instead of dividing by zero.
+// Optional gross pay conversions, shared by every pay display on the
+// page (the Saving card readout, the Outlook Pay and target guide, and
+// the Simple view answers). Returns null when no usable pay was entered,
+// so callers show a prompt instead of dividing by zero. hoursUsed is the
+// entered hours per week, or the 40-hour default when it is blank or
+// zero; the hourly equivalent always spreads annual pay across
+// hoursUsed x 52 work hours, so an hourly entry reproduces its own rate.
+function payBreakdown(inp) {
+    if (inp.payAmount === null || inp.payAmount === undefined || isNaN(inp.payAmount) || inp.payAmount <= 0) return null;
+    const hoursUsed = inp.payHours > 0 ? inp.payHours : DEFAULTS.payHours;
+    let annual;
+    if (inp.payPeriod === 'hourly') annual = inp.payAmount * hoursUsed * 52;
+    else if (inp.payPeriod === 'monthly') annual = inp.payAmount * 12;
+    else annual = inp.payAmount;
+    if (!annual || annual <= 0) return null;
+    return {
+        annual: annual,
+        monthly: annual / 12,
+        hourly: annual / (hoursUsed * 52),
+        hoursUsed: hoursUsed
+    };
+}
+
+// Annual gross pay only, kept for existing callers and the RC export.
 function annualizedPay(inp) {
-    if (inp.payAmount === null || inp.payAmount <= 0) return null;
-    if (inp.payPeriod === 'hourly') {
-        const hours = inp.payHours > 0 ? inp.payHours : DEFAULTS.payHours;
-        return inp.payAmount * hours * 52;
-    }
-    if (inp.payPeriod === 'monthly') return inp.payAmount * 12;
-    return inp.payAmount;
+    const bd = payBreakdown(inp);
+    return bd ? bd.annual : null;
+}
+
+// Hourly money needs cents ($46.15), unlike the full-dollar formatting
+// used for monthly and annual figures.
+function formatMoneyHourly(n) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+}
+
+// Hours per week as entered, without a trailing .0 (40, 37.5).
+function formatHours(h) {
+    return String(Math.round(h * 10) / 10);
 }
 
 // Spending-based target: what the portfolio must cover after
@@ -1599,11 +1634,47 @@ function formatRatePercent(amount, pay) {
     return (Math.round((amount / pay) * 1000) / 10).toFixed(1) + '%';
 }
 
+// Live conversion readout inside the Pay guidance group, visible in both
+// views and refreshed by renderPayGuide with the same solver result, so
+// the goal solver never runs twice for one recalculation. "Per work
+// hour" is the slice of each hour worked that goes to investing, not a
+// wage, and the wording says so.
+function renderPayConversion(inp, required) {
+    const box = document.getElementById('payConversionBox');
+    if (!box) return;
+    const bd = payBreakdown(inp);
+    if (!bd) {
+        box.innerHTML = '<div class="breakdown-notes" style="margin-top:0;">Enter pay above to see it converted between hourly, monthly, and annual, and to see what share of it you invest.</div>';
+        return;
+    }
+    const annualHours = bd.hoursUsed * 52;
+    const perWorkHour = function (amount) { return formatMoneyHourly(amount / annualHours); };
+    let html = '';
+    html += '<div class="breakdown-row"><span class="bd-label">Your pay</span><span class="bd-val">' +
+        formatMoneyHourly(bd.hourly) + '/hr · ' + formatMoneyFull(bd.monthly) + '/mo · ' + formatMoneyFull(bd.annual) + '/yr</span></div>';
+    html += '<div class="breakdown-row"><span class="bd-label">You invest now</span><span class="bd-val">' +
+        formatRatePercent(inp.contribution, bd.annual) + ' of gross pay · ' + formatMoneyFull(inp.contribution) + '/yr · ' +
+        formatMoneyFull(inp.contribution / 12) + '/mo · ' + perWorkHour(inp.contribution) + ' per work hour</span></div>';
+    if (required > 0) {
+        html += '<div class="breakdown-row"><span class="bd-label">To hit the target</span><span class="bd-val">' +
+            formatRatePercent(required, bd.annual) + ' of gross pay · ' + formatMoneyFull(required) + '/yr · ' +
+            formatMoneyFull(required / 12) + '/mo · ' + perWorkHour(required) + ' per work hour</span></div>';
+    } else {
+        html += '<div class="breakdown-row"><span class="bd-label">To hit the target</span><span class="bd-val">0.0% of gross pay</span></div>';
+        html += '<div class="breakdown-notes">No new saving is required under the Moderate path.</div>';
+    }
+    html += '<div class="breakdown-notes">The hourly figures use ' + formatHours(bd.hoursUsed) +
+        ' hours a week across 52 weeks. Percentages are of gross pay, before taxes and deductions.</div>';
+    box.innerHTML = html;
+}
+
 function renderPayGuide(inp, required) {
+    renderPayConversion(inp, required);
     const box = document.getElementById('payGuideBox');
     const button = document.getElementById('setRequiredBtn');
     if (!box || !button) return;
     const pay = annualizedPay(inp);
+    const payBd = payBreakdown(inp);
     const limits = calculateLimits(inp.age, inp.status, inp.spouseAge);
     const requiredRoute = routeAmount(required, limits);
     const gap = required - inp.contribution;
@@ -1614,13 +1685,15 @@ function renderPayGuide(inp, required) {
         const currentRate = formatRatePercent(inp.contribution, pay);
         const requiredRate = formatRatePercent(required, pay);
         const pointGap = Math.round(((required - inp.contribution) / pay) * 1000) / 10;
-        html += '<div class="breakdown-row"><span class="bd-label">Estimated gross annual pay</span><span class="bd-val">' + formatMoneyFull(pay) + '</span></div>';
-        html += '<div class="breakdown-row"><span class="bd-label">Current saving<span class="inc-cell">' + currentRate + ' of gross pay · ' + formatMoneyFull(inp.contribution / 12) + ' per month</span></span><span class="bd-val">' + formatMoneyFull(inp.contribution) + '/yr</span></div>';
-        html += '<div class="breakdown-row"><span class="bd-label">Required saving<span class="inc-cell">' + requiredRate + ' of gross pay · ' + formatMoneyFull(required / 12) + ' per month</span></span><span class="bd-val">' + formatMoneyFull(required) + '/yr</span></div>';
+        const annualHours = payBd.hoursUsed * 52;
+        const perWorkHour = function (amount) { return formatMoneyHourly(amount / annualHours); };
+        html += '<div class="breakdown-row"><span class="bd-label">Estimated gross pay<span class="inc-cell">' + formatMoneyHourly(payBd.hourly) + '/hr · ' + formatMoneyFull(payBd.monthly) + '/mo · at ' + formatHours(payBd.hoursUsed) + ' hours a week</span></span><span class="bd-val">' + formatMoneyFull(pay) + '/yr</span></div>';
+        html += '<div class="breakdown-row"><span class="bd-label">Current saving<span class="inc-cell">' + currentRate + ' of gross pay · ' + formatMoneyFull(inp.contribution / 12) + ' per month · ' + perWorkHour(inp.contribution) + ' per work hour</span></span><span class="bd-val">' + formatMoneyFull(inp.contribution) + '/yr</span></div>';
+        html += '<div class="breakdown-row"><span class="bd-label">Required saving<span class="inc-cell">' + requiredRate + ' of gross pay · ' + formatMoneyFull(required / 12) + ' per month · ' + perWorkHour(required) + ' per work hour</span></span><span class="bd-val">' + formatMoneyFull(required) + '/yr</span></div>';
         if (gap > 0) {
-            html += '<div class="breakdown-row"><span class="bd-label">Gap to target</span><span class="bd-val">' + formatMoneyFull(gap) + '/yr · ' + formatMoneyFull(gap / 12) + '/mo · ' + Math.abs(pointGap).toFixed(1) + ' points</span></div>';
+            html += '<div class="breakdown-row"><span class="bd-label">Gap to target</span><span class="bd-val">' + formatMoneyFull(gap) + '/yr · ' + formatMoneyFull(gap / 12) + '/mo · ' + perWorkHour(gap) + ' per work hour · ' + Math.abs(pointGap).toFixed(1) + ' points</span></div>';
         } else if (gap < 0) {
-            html += '<div class="breakdown-row"><span class="bd-label">Cushion above required</span><span class="bd-val">' + formatMoneyFull(Math.abs(gap)) + '/yr · ' + formatMoneyFull(Math.abs(gap) / 12) + '/mo · ' + Math.abs(pointGap).toFixed(1) + ' points</span></div>';
+            html += '<div class="breakdown-row"><span class="bd-label">Cushion above required</span><span class="bd-val">' + formatMoneyFull(Math.abs(gap)) + '/yr · ' + formatMoneyFull(Math.abs(gap) / 12) + '/mo · ' + perWorkHour(Math.abs(gap)) + ' per work hour · ' + Math.abs(pointGap).toFixed(1) + ' points</span></div>';
         } else {
             html += '<div class="breakdown-row"><span class="bd-label">Gap to target</span><span class="bd-val">On pace</span></div>';
         }
@@ -1752,10 +1825,12 @@ function renderSimpleAnswers(inp, required, fiAge, income, retireAge) {
         useBtn.textContent = already ? 'Already using this amount' : 'Use this amount';
     }
     if (pay && required > 0) {
-        savePay.textContent = 'That is about ' + (Math.round((required / pay) * 1000) / 10).toFixed(1) + '% of your gross pay.';
+        savePay.textContent = 'The target takes about ' + (Math.round((required / pay) * 1000) / 10).toFixed(1) +
+            '% of your gross pay. You invest ' + (Math.round((inp.contribution / pay) * 1000) / 10).toFixed(1) + '% now.';
         savePay.style.display = '';
     } else if (pay && inp.target > 0) {
-        savePay.textContent = 'That is 0% of your gross pay.';
+        savePay.textContent = 'The target takes 0.0% of your gross pay. You invest ' +
+            (Math.round((inp.contribution / pay) * 1000) / 10).toFixed(1) + '% now.';
         savePay.style.display = '';
     } else {
         savePay.textContent = '';
@@ -2499,7 +2574,7 @@ function init() {
 }
 
 // Handles for external calculation checks and debugging
-window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC, workerPlanLimit: workerPlanLimit, iraLimit: iraLimit, calculateLimits: calculateLimits, routeAmount: routeAmount, annualizedPay: annualizedPay, setViewMode: setViewMode, getViewMode: function () { return viewMode; } };
+window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC, workerPlanLimit: workerPlanLimit, iraLimit: iraLimit, calculateLimits: calculateLimits, routeAmount: routeAmount, annualizedPay: annualizedPay, payBreakdown: payBreakdown, setViewMode: setViewMode, getViewMode: function () { return viewMode; } };
 
 init();
 </script>
