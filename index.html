@@ -141,6 +141,45 @@
         [data-theme="dark"] .btn.primary { color: #14161c; }
         .btn.primary:hover { background: var(--primary-hover); }
         .btn.small { min-height: 38px; padding: 6px 12px; font-size: 0.85rem; }
+        .btn:disabled { cursor: not-allowed; opacity: 0.48; }
+        .btn.armed { border-color: var(--accent-orange); color: var(--accent-orange); background: var(--milestone-bg); }
+
+        /* --- Beginner defaults layer --- */
+        .guide-card { border-color: var(--primary); }
+        .guide-layout { display: flex; gap: 18px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
+        .guide-copy { flex: 1 1 420px; min-width: 0; }
+        .guide-copy h3 { font-family: Georgia, 'Times New Roman', serif; font-size: 1.2rem; margin-bottom: 5px; }
+        .guide-copy p { color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; }
+        .guide-kicker { color: var(--primary); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+        .guide-actions { display: flex; flex: 0 1 300px; flex-direction: column; gap: 9px; min-width: min(100%, 250px); }
+        .guide-actions .help { color: var(--text-muted); font-size: 0.78rem; line-height: 1.4; }
+        .plan-status-line { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 12px; }
+        .status-pill, .badge {
+            display: inline-flex; align-items: center; min-height: 28px; padding: 3px 9px;
+            border-radius: 999px; border: 1px solid var(--primary); color: var(--primary);
+            font-size: 0.76rem; font-weight: 800; white-space: nowrap;
+        }
+        .status-pill.custom, .badge.custom { border-color: var(--accent-orange); color: var(--accent-orange); }
+        .card-subtitle { color: var(--text-muted); font-size: 0.84rem; margin: -4px 0 12px 0; line-height: 1.45; }
+        .card-actions {
+            display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+            padding: 10px; margin-bottom: 14px; border: 1px solid var(--border);
+            border-radius: 12px; background: var(--bg-color);
+        }
+        .card-actions .advanced-summary { flex: 1 1 260px; min-width: 0; color: var(--text-muted); font-size: 0.86rem; line-height: 1.45; }
+        .card-actions .spacer { flex: 1 1 auto; }
+        .advanced-content[hidden] { display: none; }
+        .visually-hidden {
+            position: absolute !important; width: 1px !important; height: 1px !important;
+            padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important;
+        }
+        @media (max-width: 480px) {
+            .guide-actions { flex-basis: 100%; }
+            .card-actions { align-items: stretch; }
+            .card-actions .btn { flex: 1 1 130px; }
+            .card-actions .advanced-summary { flex-basis: 100%; }
+        }
 
         /* --- Contribution routing breakdown --- */
         .breakdown-box { background: var(--milestone-bg); border-radius: 12px; padding: 12px; font-size: 0.85rem; border: 1px solid var(--border); }
@@ -259,6 +298,9 @@
             table { font-size: 8pt; border: 1px solid #ccc; }
             th { background: #eee !important; color: #000; }
             .tab-panel[hidden] { display: none; }
+            /* Print the values inside advanced cards, while leaving their screen toggles out. */
+            .advanced-content[hidden] { display: block !important; }
+            .advanced-actions, .card-reset { display: none !important; }
         }
 
         /* Footer lockup per the Northbrand DNA */
@@ -302,11 +344,37 @@
      ============================================================ -->
 <section id="plan">
     <h2 class="section-title">Plan</h2>
-    <p class="section-sub">Start with the household facts. Every slider has a number box beside it: drag, type, or step, whichever you prefer.</p>
+    <p class="section-sub">Start with the household facts. You can stop after the first two cards and still get a complete result from Outlook and Income. Every slider has a number box beside it: drag, type, or step, whichever you prefer.</p>
+
+    <div class="card guide-card no-print" id="guideCard">
+        <div class="guide-layout">
+            <div class="guide-copy">
+                <div class="guide-kicker">Guided start</div>
+                <h3>New to this? Start with the first two cards.</h3>
+                <p>The spending, income, and assumption cards below already use sensible defaults. Open them only if you want to customize the plan.</p>
+                <div class="plan-status-line" aria-label="Plan default status">
+                    <span class="status-pill" id="planStatus">Defaults in use</span>
+                    <span id="planStatusDetail">All settings match the built-in defaults.</span>
+                </div>
+            </div>
+            <div class="guide-actions">
+                <button class="btn primary" id="toggleAdvancedBtn" type="button" aria-expanded="false" aria-controls="spendingBody assumptionsBody">Customize spending and assumptions</button>
+                <button class="btn" id="restoreAllBtn" type="button" aria-describedby="restoreAllHelp">Restore all defaults</button>
+                <p class="help" id="restoreAllHelp">Restore asks for one confirming click, so a stray tap does not erase a custom plan.</p>
+            </div>
+        </div>
+        <div class="visually-hidden" id="planLive" aria-live="polite"></div>
+    </div>
 
     <div class="plan-grid">
-        <div class="card">
-            <div class="card-header">Household and timing</div>
+        <div class="card" id="householdCard">
+            <div class="card-header">Step 1: Household and timing</div>
+            <p class="card-subtitle">The household basics: where the plan starts, when retirement begins, and how long it must last.</p>
+            <div class="card-actions">
+                <span class="badge" id="householdBadge">Defaults set</span>
+                <span class="spacer"></span>
+                <button class="btn small card-reset" id="resetHouseholdBtn" type="button" disabled>Restore card defaults</button>
+            </div>
 
             <div class="input-group">
                 <label for="ageNum">Current age</label>
@@ -345,8 +413,14 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">Saving and investing</div>
+        <div class="card" id="savingCard">
+            <div class="card-header">Step 2: Saving and investing</div>
+            <p class="card-subtitle">What is already invested and how much new money goes in each year.</p>
+            <div class="card-actions">
+                <span class="badge" id="savingBadge">Defaults set</span>
+                <span class="spacer"></span>
+                <button class="btn small card-reset" id="resetSavingBtn" type="button" disabled>Restore card defaults</button>
+            </div>
 
             <div class="input-group">
                 <label for="currentBalance">Current portfolio value</label>
@@ -374,8 +448,16 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card" id="spendingCard">
             <div class="card-header">Retirement spending and income</div>
+            <p class="card-subtitle">Advanced settings. The defaults below drive the plan until you choose to change them.</p>
+            <div class="card-actions advanced-actions">
+                <span class="badge" id="spendingBadge">Defaults set</span>
+                <span class="advanced-summary" id="spendingSummary">$80,000/yr spending · $2,500/mo Social Security · $0/mo other income · 4% withdrawal rate</span>
+                <button class="btn small" id="spendingToggle" type="button" aria-expanded="false" aria-controls="spendingBody">Customize</button>
+                <button class="btn small card-reset" id="resetSpendingBtn" type="button" disabled>Restore card defaults</button>
+            </div>
+            <div class="advanced-content" id="spendingBody" hidden>
 
             <div class="input-group">
                 <label for="spendingN">Desired annual spending in retirement</label>
@@ -412,10 +494,19 @@
                 </div>
                 <p class="help">Used for the target portfolio and the monthly income estimates. Higher means more income now and more risk later.</p>
             </div>
+            </div>
         </div>
 
-        <div class="card">
+        <div class="card" id="assumptionsCard">
             <div class="card-header">Assumptions and risk</div>
+            <p class="card-subtitle">Advanced settings. The defaults below drive the risk results until you choose to change them.</p>
+            <div class="card-actions advanced-actions">
+                <span class="badge" id="assumptionsBadge">Defaults set</span>
+                <span class="advanced-summary" id="assumptionsSummary">2.5% inflation · 8% planning return · 15% volatility · 0% retirement drop · $1,250,000 target</span>
+                <button class="btn small" id="assumptionsToggle" type="button" aria-expanded="false" aria-controls="assumptionsBody">Customize</button>
+                <button class="btn small card-reset" id="resetAssumptionsBtn" type="button" disabled>Restore card defaults</button>
+            </div>
+            <div class="advanced-content" id="assumptionsBody" hidden>
 
             <div class="input-group">
                 <label for="inflN">Inflation</label>
@@ -459,6 +550,7 @@
                 </div>
                 <p class="help">Starts from your spending need: annual spending minus guaranteed income, divided by the withdrawal rate. Edit it and it stays yours.</p>
                 <button class="btn small" id="targetReset" type="button">Use spending-based target</button>
+            </div>
             </div>
         </div>
 
@@ -809,6 +901,30 @@ const MODEL = {
     mcSeed: 20261106
 };
 
+/* Beginner defaults: the single source of truth for the guided start,
+   card badges, dirty-state checks, and every Restore action. Values are
+   stored the way the controls present them: money in dollars, monthly
+   income in dollars per month, and rates in percentage points. */
+const DEFAULTS = {
+    age: 40,
+    years: 25,
+    status: 'single',
+    planAge: 95,
+    balance: 528000,
+    contribution: 30500,
+    contribInc: 0,
+    spending: 80000,
+    ssMonthly: 2500,
+    otherMonthly: 0,
+    wr: 4,
+    inflation: 2.5,
+    planReturn: 8,
+    volatility: 15,
+    drop: 0,
+    incomeScenario: 'mod',
+    targetManual: false
+};
+
 const STATE = {
     theme: 'light',
     withdrawalRate: 0.04,
@@ -887,6 +1003,213 @@ function markTargetManual() {
 }
 function targetIsManual() {
     return document.getElementById('targetN').getAttribute('data-manual') === '1';
+}
+
+/* ---------- Beginner defaults, disclosure, and restore controls ---------- */
+let restoreAllArmed = false;
+let restoreAllTimer = null;
+
+function announcePlan(message) {
+    const live = document.getElementById('planLive');
+    if (!live) return;
+    live.textContent = '';
+    window.setTimeout(function () { live.textContent = message; }, 40);
+}
+
+function setDualValue(rangeId, numId, value) {
+    const range = document.getElementById(rangeId);
+    const num = document.getElementById(numId);
+    if (num) num.value = value;
+    if (range) range.value = clampTo(range, value);
+}
+
+function applyDefaults(scope) {
+    if (scope === 'all' || scope === 'household') {
+        setDualValue('age', 'ageNum', DEFAULTS.age);
+        setDualValue('years', 'yearsNum', DEFAULTS.years);
+        document.getElementById('filingStatus').value = DEFAULTS.status;
+        setDualValue('planAgeR', 'planAgeN', DEFAULTS.planAge);
+    }
+    if (scope === 'all' || scope === 'saving') {
+        setDualValue('balanceR', 'currentBalance', DEFAULTS.balance);
+        setDualValue('contribR', 'annualContribution', DEFAULTS.contribution);
+        setDualValue('contribIncR', 'contribIncN', DEFAULTS.contribInc);
+    }
+    if (scope === 'all' || scope === 'spending') {
+        setDualValue('spendingR', 'spendingN', DEFAULTS.spending);
+        setDualValue('ssR', 'ssN', DEFAULTS.ssMonthly);
+        setDualValue('otherIncR', 'otherIncN', DEFAULTS.otherMonthly);
+        setDualValue('wrR', 'wrN', DEFAULTS.wr);
+    }
+    if (scope === 'all' || scope === 'assumptions') {
+        setDualValue('inflR', 'inflN', DEFAULTS.inflation);
+        setDualValue('planRetR', 'planRetN', DEFAULTS.planReturn);
+        setDualValue('volR', 'volN', DEFAULTS.volatility);
+        setDualValue('dropR', 'dropN', DEFAULTS.drop);
+        // Returning the target to derived mode lets updateAll rebuild it
+        // from the spending settings that are current after the restore.
+        document.getElementById('targetN').setAttribute('data-manual', DEFAULTS.targetManual ? '1' : '0');
+    }
+    if (scope === 'all') {
+        document.getElementById('incomeScenario').value = DEFAULTS.incomeScenario;
+    }
+}
+
+function nearValue(a, b, tolerance) {
+    return Math.abs((a || 0) - (b || 0)) <= (tolerance || 0.001);
+}
+
+function formatPercentPoints(decimal) {
+    const rounded = Math.round(decimal * 1000) / 10;
+    return (rounded % 1 === 0 ? String(Math.round(rounded)) : String(rounded));
+}
+
+function settingsDirty(inp) {
+    const derived = derivedTarget(inp);
+    // A manual target counts as custom only when its value differs from
+    // the target the current spending settings would derive.
+    const targetDirty = targetIsManual() ? !nearValue(inp.target, derived, 0.01) : false;
+    return {
+        household: !nearValue(inp.age, DEFAULTS.age) || !nearValue(inp.years, DEFAULTS.years) ||
+            inp.status !== DEFAULTS.status || !nearValue(inp.planAge, DEFAULTS.planAge),
+        saving: !nearValue(inp.balance, DEFAULTS.balance, 0.01) ||
+            !nearValue(inp.contribution, DEFAULTS.contribution, 0.01) ||
+            !nearValue(inp.contribInc, DEFAULTS.contribInc / 100, 0.00001),
+        spending: !nearValue(inp.spending, DEFAULTS.spending, 0.01) ||
+            !nearValue(inp.ssMonthly, DEFAULTS.ssMonthly, 0.01) ||
+            !nearValue(inp.otherMonthly, DEFAULTS.otherMonthly, 0.01) ||
+            !nearValue(inp.wr, DEFAULTS.wr / 100, 0.00001),
+        assumptions: !nearValue(inp.inflation, DEFAULTS.inflation / 100, 0.00001) ||
+            !nearValue(inp.planReturn, DEFAULTS.planReturn / 100, 0.00001) ||
+            !nearValue(inp.volatility, DEFAULTS.volatility / 100, 0.00001) ||
+            !nearValue(inp.drop, DEFAULTS.drop / 100, 0.00001) || targetDirty,
+        scenario: inp.scenario !== DEFAULTS.incomeScenario
+    };
+}
+
+function setBadge(id, dirty) {
+    const badge = document.getElementById(id);
+    if (!badge) return;
+    badge.textContent = dirty ? 'Customized' : 'Defaults set';
+    badge.classList.toggle('custom', !!dirty);
+}
+
+function syncDefaultsUI(inp) {
+    const dirty = settingsDirty(inp);
+    setBadge('householdBadge', dirty.household);
+    setBadge('savingBadge', dirty.saving);
+    setBadge('spendingBadge', dirty.spending);
+    setBadge('assumptionsBadge', dirty.assumptions);
+    document.getElementById('resetHouseholdBtn').disabled = !dirty.household;
+    document.getElementById('resetSavingBtn').disabled = !dirty.saving;
+    document.getElementById('resetSpendingBtn').disabled = !dirty.spending;
+    document.getElementById('resetAssumptionsBtn').disabled = !dirty.assumptions;
+
+    document.getElementById('spendingSummary').textContent =
+        formatMoneyFull(inp.spending) + '/yr spending · ' + formatMoneyFull(inp.ssMonthly) + '/mo Social Security · ' +
+        formatMoneyFull(inp.otherMonthly) + '/mo other income · ' + formatPercentPoints(inp.wr) + '% withdrawal rate';
+    document.getElementById('assumptionsSummary').textContent =
+        formatPercentPoints(inp.inflation) + '% inflation · ' + formatPercentPoints(inp.planReturn) + '% planning return · ' +
+        formatPercentPoints(inp.volatility) + '% volatility · ' + formatPercentPoints(inp.drop) + '% retirement drop · ' +
+        formatMoneyFull(inp.target) + ' target';
+
+    const customCards = [];
+    if (dirty.household) customCards.push('Household and timing');
+    if (dirty.saving) customCards.push('Saving and investing');
+    if (dirty.spending) customCards.push('Retirement spending and income');
+    if (dirty.assumptions) customCards.push('Assumptions and risk');
+    if (dirty.scenario) customCards.push('Income scenario');
+    const anyDirty = customCards.length > 0;
+    const status = document.getElementById('planStatus');
+    status.textContent = anyDirty ? 'Custom settings active' : 'Defaults in use';
+    status.classList.toggle('custom', anyDirty);
+    document.getElementById('planStatusDetail').textContent = anyDirty
+        ? 'Customized: ' + customCards.join(', ') + '.'
+        : 'All settings match the built-in defaults.';
+    if (!anyDirty) disarmRestoreAll();
+    return dirty;
+}
+
+function advancedIsExpanded(which) {
+    const body = document.getElementById(which + 'Body');
+    return body && !body.hasAttribute('hidden');
+}
+
+function setAdvancedExpanded(which, expanded) {
+    const body = document.getElementById(which + 'Body');
+    const button = document.getElementById(which + 'Toggle');
+    if (!body || !button) return;
+    if (expanded) body.removeAttribute('hidden');
+    else body.setAttribute('hidden', '');
+    button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    button.textContent = expanded ? 'Done' : 'Customize';
+    syncAdvancedGuideButton();
+}
+
+function syncAdvancedGuideButton() {
+    const button = document.getElementById('toggleAdvancedBtn');
+    if (!button) return;
+    const bothExpanded = advancedIsExpanded('spending') && advancedIsExpanded('assumptions');
+    button.setAttribute('aria-expanded', bothExpanded ? 'true' : 'false');
+    button.textContent = bothExpanded ? 'Hide advanced cards' : 'Customize spending and assumptions';
+}
+
+function disarmRestoreAll() {
+    restoreAllArmed = false;
+    if (restoreAllTimer) window.clearTimeout(restoreAllTimer);
+    restoreAllTimer = null;
+    const button = document.getElementById('restoreAllBtn');
+    if (button) {
+        button.textContent = 'Restore all defaults';
+        button.classList.remove('armed');
+    }
+}
+
+function restoreCard(scope, label) {
+    disarmRestoreAll();
+    applyDefaults(scope);
+    updateAll();
+    announcePlan(label + ' defaults restored.');
+}
+
+function restoreAllDefaults() {
+    applyDefaults('all');
+    updateAll();
+    // A global restore reruns Monte Carlo so its result belongs to the
+    // restored plan instead of merely being marked stale.
+    runMC();
+    announcePlan('Defaults restored.');
+}
+
+function bindBeginnerControls() {
+    document.getElementById('spendingToggle').addEventListener('click', function () {
+        setAdvancedExpanded('spending', !advancedIsExpanded('spending'));
+    });
+    document.getElementById('assumptionsToggle').addEventListener('click', function () {
+        setAdvancedExpanded('assumptions', !advancedIsExpanded('assumptions'));
+    });
+    document.getElementById('toggleAdvancedBtn').addEventListener('click', function () {
+        const bothExpanded = advancedIsExpanded('spending') && advancedIsExpanded('assumptions');
+        setAdvancedExpanded('spending', !bothExpanded);
+        setAdvancedExpanded('assumptions', !bothExpanded);
+    });
+    document.getElementById('resetHouseholdBtn').addEventListener('click', function () { restoreCard('household', 'Household and timing'); });
+    document.getElementById('resetSavingBtn').addEventListener('click', function () { restoreCard('saving', 'Saving and investing'); });
+    document.getElementById('resetSpendingBtn').addEventListener('click', function () { restoreCard('spending', 'Retirement spending and income'); });
+    document.getElementById('resetAssumptionsBtn').addEventListener('click', function () { restoreCard('assumptions', 'Assumptions and risk'); });
+    document.getElementById('restoreAllBtn').addEventListener('click', function () {
+        if (!restoreAllArmed) {
+            restoreAllArmed = true;
+            this.textContent = 'Click again to restore defaults';
+            this.classList.add('armed');
+            announcePlan('Restore is armed. Click again to restore defaults.');
+            restoreAllTimer = window.setTimeout(disarmRestoreAll, 5000);
+            return;
+        }
+        disarmRestoreAll();
+        restoreAllDefaults();
+    });
+    syncAdvancedGuideButton();
 }
 
 function numVal(id, fallback) {
@@ -1089,6 +1412,9 @@ function renderWhatIf(inp, baseline) {
 
 /* ---------- 7. Rendering ---------- */
 function updateAll() {
+    // Any recalculation after the restore button is armed means the user
+    // kept editing, so the potentially destructive action is disarmed.
+    if (restoreAllArmed) disarmRestoreAll();
     const inp = getInputs();
     STATE.withdrawalRate = inp.wr;
 
@@ -1191,6 +1517,7 @@ function updateAll() {
     STATE.last = { inp: inp, acc: acc, income: income };
     renderChart(acc, inp);
     renderIncomeChart(income, inp);
+    syncDefaultsUI(inp);
 
     if (STATE.mcRan) {
         document.getElementById('mcStatus').textContent = 'Inputs changed since the last run. Run again for updated results.';
@@ -1554,6 +1881,37 @@ function downloadPage() {
             if (attr.name.indexOf('data-') === 0) cloneEl.setAttribute(attr.name, attr.value);
         });
     });
+    // Advanced-card disclosure state: hidden bodies, toggle labels, and
+    // aria-expanded values reopen in the same state in the saved copy.
+    ['spending', 'assumptions'].forEach(function (which) {
+        const body = document.getElementById(which + 'Body');
+        const cloneBody = docClone.querySelector('#' + which + 'Body');
+        const toggle = document.getElementById(which + 'Toggle');
+        const cloneToggle = docClone.querySelector('#' + which + 'Toggle');
+        if (body && cloneBody) {
+            if (body.hasAttribute('hidden')) cloneBody.setAttribute('hidden', '');
+            else cloneBody.removeAttribute('hidden');
+        }
+        if (toggle && cloneToggle) {
+            cloneToggle.setAttribute('aria-expanded', toggle.getAttribute('aria-expanded'));
+            cloneToggle.textContent = toggle.textContent;
+        }
+    });
+    ['toggleAdvancedBtn', 'restoreAllBtn', 'planStatus', 'planStatusDetail', 'spendingSummary', 'assumptionsSummary'].forEach(function (id) {
+        const live = document.getElementById(id);
+        const cloneEl = docClone.querySelector('#' + id);
+        if (!live || !cloneEl) return;
+        cloneEl.textContent = live.textContent;
+        if (live.hasAttribute('aria-expanded')) cloneEl.setAttribute('aria-expanded', live.getAttribute('aria-expanded'));
+        if (live.hasAttribute('class')) cloneEl.setAttribute('class', live.getAttribute('class'));
+    });
+    ['resetHouseholdBtn', 'resetSavingBtn', 'resetSpendingBtn', 'resetAssumptionsBtn'].forEach(function (id) {
+        const live = document.getElementById(id);
+        const cloneEl = docClone.querySelector('#' + id);
+        if (!live || !cloneEl) return;
+        if (live.disabled) cloneEl.setAttribute('disabled', '');
+        else cloneEl.removeAttribute('disabled');
+    });
     // Tab state
     document.querySelectorAll('.tabs button[role="tab"]').forEach(function (btn) {
         const cloneBtn = docClone.querySelector('#' + btn.id);
@@ -1579,6 +1937,7 @@ function downloadPage() {
 /* ---------- Init ---------- */
 function init() {
     bindDuals();
+    bindBeginnerControls();
     bindTabs();
     document.getElementById('mcRun').addEventListener('click', runMC);
     document.getElementById('mcPathsLabel').textContent = MODEL.mcPaths.toLocaleString();
