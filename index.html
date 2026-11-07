@@ -2,10 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Retirement Strategy Analyzer</title>
-    <meta name="description" content="The Retirement Strategy Analyzer is an educational simulator comparing historical outcomes of two broad stock index funds, VOO and VTI.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirement Strategy Center</title>
+    <meta name="description" content="The Retirement Strategy Center is an educational retirement planning simulator: accumulation outlook, income and longevity testing, Monte Carlo risk analysis, and the VOO versus VTI strategy, in one offline page.">
     <style>
+        /* ============================================================
+           NORTHBRAND DNA TOKENS (see ~/workspace/northbrand-hub/DESIGN.md)
+           Paper and Ink neutrals, Northbrand Gold as the one accent,
+           strategy series colors below are data colors, not decoration.
+           ============================================================ */
         :root {
             --bg-color: #f4f3ec;
             --card-bg: #fffdf9;
@@ -36,23 +41,14 @@
             --milestone-bg: #232635;
         }
 
-        /* GLOBAL FIXES FOR MOBILE OVERFLOW */
-        html {
-            box-sizing: border-box;
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-        *, *::before, *::after {
-            box-sizing: inherit;
-        }
-
+        /* Global guards against mobile overflow */
+        html { box-sizing: border-box; max-width: 100%; overflow-x: hidden; scroll-behavior: smooth; }
+        *, *::before, *::after { box-sizing: inherit; }
         * {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-        
         body {
             background: var(--bg-color);
             color: var(--text-main);
@@ -65,676 +61,208 @@
         }
 
         /* --- Header --- */
-        header { 
-            display: flex; 
-            flex-direction: column; /* Stack by default on mobile */
-            gap: 15px; 
-            margin-bottom: 20px; 
-            padding-bottom: 15px; 
-            border-bottom: 1px solid var(--border); 
+        header {
+            display: flex; flex-direction: column; gap: 15px;
+            margin-bottom: 14px; padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            max-width: 1200px; margin-left: auto; margin-right: auto;
         }
-        
-        .header-content h1 {
-            font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: -0.025em;
-            margin: 0;
-            line-height: 1.2;
-        }
-        .header-controls {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-        }
-        
+        .header-content h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.025em; line-height: 1.2; font-family: Georgia, 'Times New Roman', serif; }
+        .header-controls { display: flex; gap: 10px; flex-wrap: wrap; }
         button.icon-btn {
-            cursor: pointer;
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--card-bg);
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            transition: 0.2s;
-            flex-shrink: 0;
+            cursor: pointer; width: 44px; height: 44px; border-radius: 12px;
+            border: 1px solid var(--border); background: var(--card-bg); color: var(--text-main);
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.2s; flex-shrink: 0;
         }
         button.icon-btn:hover { background: var(--border); }
         button.primary-icon { background: var(--primary); color: white; border: none; }
-
-        /* Desktop Header Override */
         @media (min-width: 768px) {
-            header {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-            }
-            .header-controls {
-                width: auto;
-                flex-wrap: nowrap;
-            }
+            header { flex-direction: row; justify-content: space-between; align-items: center; }
         }
+        .nb-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--primary); font-weight: 700; margin-bottom: 4px; }
 
-        /* --- Layout Grid --- */
-        .grid-container { 
-            display: grid; 
-            grid-template-columns: 1fr; /* Single column default */
-            gap: 20px; 
-            max-width: 1400px; 
-            width: 100%;
-            margin: 0 auto;
-            overflow-x: hidden;
+        /* --- Sticky section navigation --- */
+        .secnav {
+            position: sticky; top: 0; z-index: 50;
+            background: var(--bg-color);
+            border-bottom: 1px solid var(--border);
+            max-width: 1200px; margin: 0 auto 18px auto;
+            display: flex; gap: 4px; padding: 6px 0;
+            overflow-x: auto; scrollbar-width: none;
         }
-        
-        @media (min-width: 1024px) { 
-            .grid-container { grid-template-columns: 350px 1fr; } 
+        .secnav::-webkit-scrollbar { display: none; }
+        .secnav a {
+            color: var(--text-muted); text-decoration: none; font-weight: 700; font-size: 0.9rem;
+            padding: 10px 12px; border-radius: 10px; white-space: nowrap; min-height: 44px;
+            display: flex; align-items: center;
         }
+        .secnav a:hover, .secnav a:focus { color: var(--primary); background: var(--card-bg); }
+
+        main { max-width: 1200px; margin: 0 auto; }
+        section { scroll-margin-top: 70px; margin-bottom: 22px; }
+        .section-title { font-family: Georgia, 'Times New Roman', serif; font-size: 1.35rem; margin-bottom: 4px; }
+        .section-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 14px; }
 
         /* --- Cards --- */
         .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            padding: 15px;
-            max-width: 100%;
+            background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 16px; max-width: 100%; margin-bottom: 16px;
         }
+        .card-header { font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; font-size: 1.05rem; }
+        .card-note { font-size: 0.82rem; color: var(--text-muted); margin-top: 8px; line-height: 1.45; }
 
-        .card-header {
-            font-weight: 700;
-            margin-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 8px;
-            font-size: 1.05rem;
-        }
-        
-        /* --- Inputs --- */
-        .input-group { margin-bottom: 15px; }
-        .input-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-        .input-group input,
-        .input-group select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--bg-color);
-            color: var(--text-main);
-            font-size: 1rem;
-            appearance: none;
-        }
-        .input-group input:focus {
-            outline: 2px solid var(--primary);
-            border-color: transparent;
-        }
-        
-        .range-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        input[type="range"] {
-            flex: 1;
-            accent-color: var(--primary);
-            height: 24px;
-            cursor: pointer;
-            width: 100%;
-        }
-        .range-val {
-            font-variant-numeric: tabular-nums;
-            width: 45px;
-            text-align: right;
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
+        /* --- Plan control groups --- */
+        .plan-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        @media (min-width: 900px) { .plan-grid { grid-template-columns: 1fr 1fr; } .plan-grid .span2 { grid-column: span 2; } }
 
-        /* --- Breakdown Box --- */
-        .breakdown-box {
-            background: var(--milestone-bg);
-            border-radius: 12px;
-            padding: 12px;
-            font-size: 0.85rem;
-            border: 1px solid var(--border);
+        /* --- Dual controls: every slider pairs with an editable number --- */
+        .input-group { margin-bottom: 16px; }
+        .input-group:last-child { margin-bottom: 4px; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+        .input-group .help { font-size: 0.78rem; color: var(--text-muted); margin-top: 5px; line-height: 1.4; }
+        .dual { display: flex; align-items: center; gap: 10px; }
+        .dual input[type="range"] { flex: 1 1 auto; min-width: 0; accent-color: var(--primary); height: 44px; cursor: pointer; }
+        .dual .numwrap { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+        .dual input[type="number"], .input-group input[type="number"], .input-group select {
+            padding: 10px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--bg-color); color: var(--text-main); font-size: 1rem; min-height: 44px;
         }
-        .breakdown-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
+        .dual input[type="number"] { width: 104px; }
+        .dual .unit { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+        .input-group select { width: 100%; appearance: none; }
+        .input-group input:focus, .input-group select:focus { outline: 2px solid var(--primary); border-color: transparent; }
+        .btn {
+            cursor: pointer; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--card-bg); color: var(--text-main); font-weight: 700;
+            padding: 10px 16px; min-height: 44px; font-size: 0.95rem; transition: 0.2s;
         }
-        .breakdown-row:last-child {
-            margin-bottom: 0;
-            padding-top: 6px;
-            border-top: 1px solid var(--border);
-            font-weight: 700;
-        }
-        .bd-label {
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .bd-val {
-            font-family: monospace;
-            font-weight: 600;
-        }
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            flex-shrink: 0;
-        }
-        .breakdown-notes {
-            margin-top: 8px;
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
+        .btn:hover { background: var(--border); }
+        .btn.primary { background: var(--primary); border: none; color: #fff; }
+        [data-theme="dark"] .btn.primary { color: #14161c; }
+        .btn.primary:hover { background: var(--primary-hover); }
+        .btn.small { min-height: 38px; padding: 6px 12px; font-size: 0.85rem; }
 
-        /* --- Stats Grid --- */
-        .stats-grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); /* 2 cols on mobile baseline */
-            gap: 10px; 
-            margin-bottom: 20px; 
-            width: 100%;
-        }
-        .stat-box { 
-            padding: 12px; 
-            background: var(--bg-color); 
-            border-radius: 12px; 
-            border: 1px solid var(--border); 
-            min-width: 0;
-        }
-        .stat-box h4 {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
-        }
-        .stat-box .value {
-            font-size: 1rem;
-            font-weight: 800;
-            display: block;
-            margin-bottom: 2px;
-            word-break: break-word;
-        }
-        .stat-box .sub-value {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
+        /* --- Contribution routing breakdown --- */
+        .breakdown-box { background: var(--milestone-bg); border-radius: 12px; padding: 12px; font-size: 0.85rem; border: 1px solid var(--border); }
+        .breakdown-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .breakdown-row:last-child { margin-bottom: 0; padding-top: 6px; border-top: 1px solid var(--border); font-weight: 700; }
+        .bd-label { color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .bd-val { font-family: monospace; font-weight: 600; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        .breakdown-notes { margin-top: 8px; font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+
+        /* --- Stats grid --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; width: 100%; }
+        .stat-box { padding: 12px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border); min-width: 0; }
+        .stat-box h4 { color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .stat-box .value { font-size: 1rem; font-weight: 800; display: block; margin-bottom: 2px; word-break: break-word; }
+        .stat-box .sub-value { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
         .stat-box.highlight { border-left: 3px solid var(--primary); }
         .stat-box.green { border-left: 3px solid var(--accent-green); }
         .stat-box.purple { border-left: 3px solid var(--accent-purple); }
-        
-        /* Highlight spans full width on mobile for emphasis */
-        .stat-box:first-child { grid-column: span 2; } 
+        .stat-box.orange { border-left: 3px solid var(--accent-orange); }
+        @media (min-width: 600px) { .stats-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
 
-        @media (min-width: 600px) {
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            }
-            .stat-box:first-child {
-                grid-column: auto;
-            }
-        }
-
-        /* --- Chart --- */
-        .chart-wrapper { 
-            height: 300px; 
-            width: 100%;
-            position: relative; 
-            margin-top: 20px; 
-            border: 1px solid var(--border); 
-            border-radius: 12px; 
-            padding: 10px 5px 25px 35px; 
-            background: var(--bg-color); 
-            overflow: hidden; 
-        }
-        svg {
-            width: 100%;
-            height: 100%;
-            overflow: visible;
-        }
+        /* --- Charts --- */
+        .chart-wrapper { height: 300px; width: 100%; position: relative; margin-top: 14px; border: 1px solid var(--border); border-radius: 12px; padding: 10px 5px 25px 35px; background: var(--bg-color); overflow: hidden; }
+        svg { width: 100%; height: 100%; overflow: visible; }
         .axis-line { stroke: var(--border); stroke-width: 1; }
         .grid-line { stroke: var(--chart-grid); stroke-dasharray: 4; stroke-width: 1; }
         .line-con { fill: none; stroke: var(--accent-orange); stroke-width: 3; stroke-linejoin: round; }
         .line-mod { fill: none; stroke: var(--accent-green); stroke-width: 3; stroke-linejoin: round; }
         .line-hist { fill: none; stroke: var(--accent-purple); stroke-width: 3; stroke-linejoin: round; stroke-dasharray: 5,5; }
+        .line-inc { fill: none; stroke: var(--accent-green); stroke-width: 3; stroke-linejoin: round; }
+        .band { fill: var(--accent-green); opacity: 0.18; }
+        .line-med { fill: none; stroke: var(--accent-green); stroke-width: 3; }
         .chart-label { font-size: 10px; fill: var(--text-muted); }
-
-        /* --- Table --- */
-        .table-container { 
-            overflow-x: auto; 
-            -webkit-overflow-scrolling: touch; 
-            margin-top: 10px; 
-            border-radius: 12px; 
-            border: 1px solid var(--border); 
-            max-height: 400px;
-            width: 100%;
-            max-width: 100%;
-        }
-        .table-explainer {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            text-align: right;
-            background: var(--card-bg);
-            min-width: 0;              /* Let it shrink to viewport */
-            table-layout: fixed;       /* Columns share available width */
-        }
-        th, td {
-            padding: 10px;
-            border-bottom: 1px solid var(--border);
-            white-space: normal;       /* Allow wrapping */
-            word-wrap: break-word;
-            overflow-wrap: anywhere;
-        }
-        th {
-            background: var(--bg-color);
-            color: var(--text-muted);
-            font-weight: 600;
-            text-align: right;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        th:first-child,
-        td:first-child {
-            text-align: left;
-            position: sticky;
-            left: 0;
-            background: var(--card-bg);
-            z-index: 20;
-            border-right: 1px solid var(--border);
-        }
-        th:first-child {
-            z-index: 30;
-            background: var(--bg-color);
-        }
-        .inc-cell {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            display: block;
+        .tooltip {
+            position: absolute; background: var(--card-bg); border: 1px solid var(--border); padding: 8px 12px;
+            border-radius: 6px; font-size: 0.8rem; pointer-events: none; opacity: 0; transition: opacity 0.1s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 100; line-height: 1.4; white-space: nowrap; max-width: 90%;
         }
 
-        .swr-controls {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-            flex-wrap: wrap;
+        /* --- Tables --- */
+        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 12px; border: 1px solid var(--border); max-height: 420px; width: 100%; max-width: 100%; }
+        .table-explainer { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: right; background: var(--card-bg); table-layout: fixed; }
+        th, td { padding: 10px; border-bottom: 1px solid var(--border); white-space: normal; word-wrap: break-word; overflow-wrap: anywhere; }
+        th { background: var(--bg-color); color: var(--text-muted); font-weight: 600; text-align: right; position: sticky; top: 0; z-index: 10; }
+        th:first-child, td:first-child { text-align: left; }
+        .inc-cell { color: var(--text-muted); font-size: 0.75rem; display: block; }
+        td.delta-pos { color: var(--accent-green); font-weight: 700; }
+        td.delta-neg { color: #dc2626; font-weight: 700; }
+        [data-theme="dark"] td.delta-neg { color: #f87171; }
+
+        /* --- Tabs (Details) --- */
+        .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .tabs button {
+            cursor: pointer; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-color);
+            color: var(--text-muted); font-weight: 700; padding: 8px 14px; min-height: 44px; font-size: 0.9rem;
         }
-        .swr-controls select {
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: var(--bg-color);
-            color: var(--text-main);
-            font-size: 0.8rem;
-        }
+        .tabs button[aria-selected="true"] { background: var(--primary); color: #fff; border-color: transparent; }
+        [data-theme="dark"] .tabs button[aria-selected="true"] { color: #14161c; }
+        .tab-panel[hidden] { display: none; }
 
         /* --- Milestones --- */
-        .milestone-container {
-            display: grid;
-            gap: 10px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .milestone {
-            display: flex;
-            gap: 12px;
-            padding: 12px;
-            border-radius: 12px;
-            background: var(--milestone-bg);
-            border-left: 4px solid var(--text-muted);
-            align-items: flex-start;
-            font-size: 0.9rem;
-        }
-        .milestone.active {
-            border-left-color: var(--primary);
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--primary);
-        }
-        .milestone .age-badge {
-            background: var(--text-main);
-            color: var(--bg-color);
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            min-width: 40px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-        
-        .tag {
-            font-size: 0.75rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            background: #e2e8f0;
-            color: #334155;
-        }
-        .tag-vti { background: #dbeafe; color: #1e40af; }
-        .tag-voo { background: #dcfce7; color: #166534; }
+        .milestone-container { display: grid; gap: 10px; }
+        .milestone { display: flex; gap: 12px; padding: 12px; border-radius: 12px; background: var(--milestone-bg); border-left: 4px solid var(--text-muted); align-items: flex-start; font-size: 0.9rem; }
+        .milestone.active { border: 1px solid var(--border); border-left: 4px solid var(--primary); background: var(--card-bg); }
+        .milestone .age-badge { background: var(--text-main); color: var(--bg-color); padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; min-width: 40px; text-align: center; flex-shrink: 0; }
 
-        .tooltip {
-            position: absolute;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.1s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            z-index: 100;
-            line-height: 1.4;
-            white-space: nowrap;
-            max-width: 90%;
-        }
+        /* --- Strategy copy --- */
+        .strategy-body { font-size: 0.92rem; color: var(--text-muted); line-height: 1.55; display: flex; flex-direction: column; gap: 10px; }
+        .strategy-body h4 { font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
+        .strategy-body ul { padding-left: 18px; margin: 4px 0; }
+        .strategy-body li { margin-bottom: 4px; }
+        .strategy-body a { color: var(--primary); }
+        .tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; background: var(--milestone-bg); color: var(--text-main); }
+        .mini-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin: 6px 0; table-layout: auto; }
+        .mini-table th, .mini-table td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; position: static; }
+        .mini-table th { background: var(--bg-color); color: var(--text-muted); }
+        .callout { border-left: 4px solid var(--primary); background: var(--milestone-bg); border-radius: 8px; padding: 12px 14px; color: var(--text-main); font-size: 1rem; }
 
-        .strategy-body {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .method-body { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
+        .method-body h4 { color: var(--text-main); margin: 12px 0 4px 0; font-size: 0.92rem; }
+        .method-body ul { padding-left: 18px; }
+        .method-body li { margin-bottom: 4px; }
+        .stale-note { font-size: 0.82rem; color: var(--accent-orange); font-weight: 600; min-height: 1.2em; }
 
-        .strategy-body h4 {
-            font-size: 0.85rem;
-            font-weight: 700;
-            margin-bottom: 2px;
-            color: var(--text-main);
-        }
-
-        .strategy-body h5 {
-            font-size: 0.82rem;
-            font-weight: 700;
-            margin-bottom: 2px;
-            color: var(--text-main);
-        }
-
-        .strategy-body ul {
-            padding-left: 18px;
-            margin: 4px 0 8px 0;
-        }
-
-        .strategy-body li {
-            margin-bottom: 4px;
-        }
-
-        .broker-links {
-            font-size: 0.8rem;
-            margin-top: 6px;
-        }
-
-        .broker-links a {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        .broker-links a:hover {
-            text-decoration: underline;
-        }
-
-        /* Mini comparison table inside Strategy Insight */
-        .mini-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.78rem;
-            margin: 6px 0 8px 0;
-        }
-        .mini-table th,
-        .mini-table td {
-            border: 1px solid var(--border);
-            padding: 4px 6px;
-            text-align: left;
-            white-space: normal;
-            word-wrap: break-word;
-        }
-        .mini-table th {
-            background: var(--bg-color);
-            color: var(--text-muted);
-        }
-
-        /* --- MOBILE-SPECIFIC TUNING FOR VERY SMALL VIEWPORTS --- */
+        /* --- Small screens --- */
         @media (max-width: 480px) {
-            body {
-                padding: 8px;
-            }
-
-            header {
-                align-items: flex-start;
-            }
-
-            .card {
-                padding: 10px;
-            }
-
-            .grid-container {
-                width: 100%;
-                max-width: 100%;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;   /* single-column stats on very small screens */
-            }
-            .stat-box:first-child {
-                grid-column: span 1;
-            }
-
-            .chart-wrapper {
-                height: 220px;
-                padding: 6px 0 18px 28px;
-            }
-
-            /* Table: smaller font + tighter padding, no hard min-width */
-            table {
-                font-size: 0.75rem;
-                min-width: 0;
-            }
-            th, td {
-                padding: 6px 4px;
-            }
-
-            .mini-table {
-                font-size: 0.75rem;
-            }
+            body { padding: 8px; }
+            .card { padding: 12px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .chart-wrapper { height: 220px; padding: 6px 0 18px 28px; }
+            table { font-size: 0.75rem; }
+            th, td { padding: 6px 4px; }
+            .dual input[type="number"] { width: 88px; }
         }
 
-        /* --- Print Styles --- */
+        /* --- Print: the report --- */
         .print-summary { display: none; }
-        
         @media print {
             @page { margin: 0.5in; size: letter portrait; }
-            body {
-                background: white;
-                color: black;
-                font-size: 9pt;
-                padding: 0;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                width: 100%;
-                overflow: visible;
-            }
-            header, aside, .header-controls, #tooltip { display: none !important; }
-            
-            .grid-container {
-                display: block;
-                width: 100%;
-                margin: 0;
-            }
-            .card {
-                border: none;
-                box-shadow: none;
-                padding: 0;
-                margin-bottom: 20px;
-                background: transparent;
-                page-break-inside: avoid;
-            }
-            .card-header {
-                border-bottom: 1px solid #000;
-                margin-bottom: 10px;
-                padding-bottom: 5px;
-                color: #000;
-                font-size: 11pt;
-            }
-            
-            /* Print Header */
-            .print-summary {
-                display: block;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #000;
-            }
-            .print-summary h1 {
-                font-size: 16pt;
-                margin: 0 0 10px 0;
-            }
-            .print-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
-                font-size: 10pt;
-            }
-
-            /* Stats Grid Print */
-            .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(5, 1fr);
-                gap: 8px;
-                margin-bottom: 15px;
-            }
-            .stat-box {
-                border: 1px solid #ccc;
-                padding: 6px;
-                background: #fff !important;
-            }
-            .stat-box h4 {
-                font-size: 7pt;
-                color: #333;
-            }
-            .stat-box .value {
-                font-size: 10pt;
-                color: #000;
-            }
-            .stat-box .sub-value {
-                font-size: 7pt;
-                color: #444;
-            }
-            .stat-box:first-child { grid-column: auto; }
-
-            /* Chart Print */
-            .chart-wrapper {
-                height: 250px;
-                border: 1px solid #ccc;
-                background: white;
-                padding: 10px 10px 20px 30px;
-                page-break-inside: avoid;
-            }
-            .line-con { stroke: #d97706 !important; stroke-width: 1.5px; }
-            .line-mod { stroke: #059669 !important; stroke-width: 1.5px; }
-            .line-hist { stroke: #7c3aed !important; stroke-width: 1.5px; }
-
-            /* Table Print - Compact */
-            .table-container {
-                border: none;
-                overflow: visible;
-                max-height: none;
-                margin-top: 10px;
-            }
-            table {
-                font-size: 8pt;
-                width: 100%;
-                border: 1px solid #ccc;
-                min-width: 0;
-            }
-            th {
-                background: #eee !important;
-                color: #000;
-                border: 1px solid #999;
-                padding: 3px 5px;
-            }
-            td {
-                padding: 3px 5px;
-                border: 1px solid #ddd;
-            }
-            .inc-cell {
-                display: inline;
-                margin-left: 4px;
-                font-size: 7pt;
-                color: #555;
-            }
-            .inc-cell::before { content: "("; }
-            .inc-cell::after { content: ")"; }
-
-            /* Milestones Print - Two Columns */
-            .milestone-container {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                overflow: visible;
-                max-height: none;
-            }
-            .milestone {
-                padding: 6px;
-                border: 1px solid #ccc;
-                font-size: 8pt;
-                background: white !important;
-                border-left-width: 2px !important;
-            }
-            .milestone .age-badge {
-                background: #eee !important;
-                color: #000;
-                border: 1px solid #999;
-                font-size: 7pt;
-                padding: 2px 4px;
-            }
-            .milestone-details h5 {
-                color: #000;
-                font-size: 9pt;
-                margin-bottom: 2px;
-            }
-            .milestone-details p {
-                color: #333;
-                font-size: 8pt;
-            }
+            body { background: white; color: black; font-size: 9pt; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100%; overflow: visible; }
+            header, .secnav, .no-print, #tooltip { display: none !important; }
+            main { max-width: 100%; }
+            section { page-break-inside: avoid; }
+            .card { border: none; box-shadow: none; padding: 0; margin-bottom: 20px; background: transparent; }
+            .card-header { border-bottom: 1px solid #000; color: #000; font-size: 11pt; }
+            .print-summary { display: block; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #000; }
+            .print-summary h1 { font-size: 16pt; margin: 0 0 10px 0; font-family: Georgia, serif; }
+            .print-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 10pt; }
+            .stats-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+            .stat-box { border: 1px solid #ccc; padding: 6px; background: #fff !important; }
+            .stat-box .value { font-size: 10pt; color: #000; }
+            .chart-wrapper { height: 250px; border: 1px solid #ccc; background: white; page-break-inside: avoid; }
+            .table-container { border: none; overflow: visible; max-height: none; }
+            table { font-size: 8pt; border: 1px solid #ccc; }
+            th { background: #eee !important; color: #000; }
+            .tab-panel[hidden] { display: none; }
         }
-    
-        /* ============================================================
-           NORTHBRAND DNA (added 2026-10-27)
-           Brand tokens and the footer lockup follow the Northbrand
-           design DNA in ~/workspace/northbrand-hub/DESIGN.md.
-           The strategy accent colors above are data colors and stay.
-           ============================================================ */
-        .nb-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--primary); font-weight: 700; margin-bottom: 4px; }
-        header h1 { font-family: Georgia, 'Times New Roman', serif; }
-        .nb-footer { text-align: center; padding: 28px 16px 36px; color: var(--text-muted); font-size: 0.85rem; }
+
+        /* Footer lockup per the Northbrand DNA */
+        .nb-footer { text-align: center; padding: 28px 16px 36px; color: var(--text-muted); font-size: 0.85rem; max-width: 1200px; margin: 0 auto; }
         .nb-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
         .nb-footer .nb-footer-sub { margin-top: 6px; }
     </style>
@@ -745,759 +273,1339 @@
     <div class="header-content">
         <div class="nb-eyebrow">Northbrand Collective</div>
         <h1>Retirement Strategy Center</h1>
-        <div style="font-size: 0.9rem; color: var(--text-muted);">2026 Tax-Aware Analysis</div>
+        <div style="font-size: 0.9rem; color: var(--text-muted);">Plan, test, and understand a retirement built on one broad index fund.</div>
     </div>
     <div class="header-controls">
-        <button class="icon-btn" onclick="window.print()" title="Print Report">🖨️</button>
-        <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">🌙</button>
-        <button class="icon-btn primary-icon" onclick="downloadPage()" title="Download Offline Tool">📥</button>
+        <button class="icon-btn" onclick="window.print()" title="Print Report" aria-label="Print report">🖨️</button>
+        <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme" aria-label="Toggle theme">🌙</button>
+        <button class="icon-btn primary-icon" onclick="downloadPage()" title="Download Offline Tool" aria-label="Download offline copy">📥</button>
     </div>
 </header>
 
-<!-- Print Only Summary Header -->
+<!-- Print only summary header, filled by updateAll() -->
 <div class="print-summary" id="printSummary"></div>
 
-<div class="grid-container">
-    <!-- Controls Sidebar -->
-    <aside>
+<nav class="secnav" aria-label="Sections">
+    <a href="#plan">Plan</a>
+    <a href="#outlook">Outlook</a>
+    <a href="#income">Income</a>
+    <a href="#risk">Risk Lab</a>
+    <a href="#strategy">Strategy</a>
+    <a href="#details">Details</a>
+</nav>
+
+<main>
+<!-- ============================================================
+     SECTION 1: PLAN
+     Every slider is paired with an editable number input.
+     The number input is authoritative; the slider mirrors it.
+     ============================================================ -->
+<section id="plan">
+    <h2 class="section-title">Plan</h2>
+    <p class="section-sub">Start with the household facts. Every slider has a number box beside it: drag, type, or step, whichever you prefer.</p>
+
+    <div class="plan-grid">
         <div class="card">
-            <div class="card-header">Your Inputs</div>
-            
+            <div class="card-header">Household and timing</div>
+
             <div class="input-group">
-                <label>Current Age</label>
-                <div class="range-wrapper">
-                    <input type="range" id="age" min="20" max="70" value="40" oninput="updateAll()">
-                    <span class="range-val" id="ageDisplay">40</span>
+                <label for="ageNum">Current age</label>
+                <div class="dual">
+                    <input type="range" id="age" min="20" max="70" step="1" value="40" aria-label="Current age slider">
+                    <span class="numwrap"><input type="number" id="ageNum" min="20" max="70" step="1" value="40"><span class="unit">yrs</span></span>
                 </div>
             </div>
 
             <div class="input-group">
-                <label>Filing Status</label>
-                <select id="filingStatus" onchange="updateAll()">
+                <label for="yearsNum">Years until retirement</label>
+                <div class="dual">
+                    <input type="range" id="years" min="5" max="40" step="1" value="25" aria-label="Years until retirement slider">
+                    <span class="numwrap"><input type="number" id="yearsNum" min="5" max="40" step="1" value="25"><span class="unit">yrs</span></span>
+                </div>
+                <p class="help">Retirement age is current age plus this many years.</p>
+            </div>
+
+            <div class="input-group">
+                <label for="filingStatus">Filing status</label>
+                <select id="filingStatus">
                     <option value="single">Single</option>
                     <option value="mfj_single">Married (Single Earner)</option>
                     <option value="mfj_dual">Married (Dual Earner)</option>
                 </select>
+                <p class="help">Filing status changes the 401(k) and IRA room used in the contribution routing below.</p>
             </div>
-            
+
             <div class="input-group">
-                <label>Current Portfolio Value ($)</label>
-                <input type="number" id="currentBalance" value="528000" step="1000" oninput="updateAll()">
-            </div>
-            
-            <div class="input-group">
-                <label>Years to Project</label>
-                <div class="range-wrapper">
-                    <input type="range" id="years" min="5" max="40" value="25" oninput="updateAll()">
-                    <span class="range-val" id="yearsDisplay">25</span>
+                <label for="planAgeN">Plan through age</label>
+                <div class="dual">
+                    <input type="range" id="planAgeR" min="75" max="105" step="1" value="95" aria-label="Plan through age slider">
+                    <span class="numwrap"><input type="number" id="planAgeN" min="75" max="105" step="1" value="95"><span class="unit">yrs</span></span>
                 </div>
+                <p class="help">The age the plan must fund through. Longer is more conservative.</p>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">Contribution Strategy</div>
-            
+            <div class="card-header">Saving and investing</div>
+
             <div class="input-group">
-                <label>Annual Investment ($)</label>
-                <input type="number" id="annualContribution" value="30500" step="500" oninput="updateAll()">
+                <label for="currentBalance">Current portfolio value</label>
+                <div class="dual">
+                    <input type="range" id="balanceR" min="0" max="3000000" step="5000" value="528000" aria-label="Current portfolio slider">
+                    <span class="numwrap"><span class="unit">$</span><input type="number" id="currentBalance" min="0" step="1000" value="528000"></span>
+                </div>
             </div>
 
-            <div class="breakdown-box" id="contribBreakdown">
-                <!-- Populated via JS -->
+            <div class="input-group">
+                <label for="annualContribution">Annual investment, first year</label>
+                <div class="dual">
+                    <input type="range" id="contribR" min="0" max="150000" step="500" value="30500" aria-label="Annual investment slider">
+                    <span class="numwrap"><span class="unit">$</span><input type="number" id="annualContribution" min="0" step="500" value="30500"></span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="contribIncN">Annual contribution increase</label>
+                <div class="dual">
+                    <input type="range" id="contribIncR" min="0" max="10" step="0.25" value="0" aria-label="Contribution increase slider">
+                    <span class="numwrap"><input type="number" id="contribIncN" min="0" max="10" step="0.25" value="0"><span class="unit">%/yr</span></span>
+                </div>
+                <p class="help">How much the annual investment grows each year, for example with raises. Zero keeps the original flat baseline.</p>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">Strategy Insight</div>
-            <div class="strategy-body">
-                <div>
-                    <h4>The “Barbell” Approach</h4>
-                    <p>
-                        Think of your portfolio as a barbell: one plate is <span class="tag tag-voo">VOO</span> (large, profitable U.S. companies), 
-                        the other plate is <span class="tag tag-vti">VTI</span> (the entire U.S. stock market). The bar in the middle is your 
-                        tax-advantaged accounts (401(k), IRA) plus taxable brokerage.
-                    </p>
+            <div class="card-header">Retirement spending and income</div>
+
+            <div class="input-group">
+                <label for="spendingN">Desired annual spending in retirement</label>
+                <div class="dual">
+                    <input type="range" id="spendingR" min="20000" max="250000" step="1000" value="80000" aria-label="Annual spending slider">
+                    <span class="numwrap"><span class="unit">$</span><input type="number" id="spendingN" min="0" step="1000" value="80000"></span>
                 </div>
+                <p class="help">In today's dollars. The simulators raise it with inflation each year of retirement.</p>
+            </div>
 
-                <div>
-                    <h4>Where New Contributions Go</h4>
-                    <p>
-                        The contribution breakdown routes dollars into:
-                    </p>
-                    <ul>
-                        <li><strong>401(k) / 403(b):</strong> Pre-tax or Roth contributions, usually your biggest tax-advantaged bucket.</li>
-                        <li><strong>IRAs (Roth/Traditional):</strong> Personal and spousal IRAs to add more tax shelter.</li>
-                        <li><strong>Taxable Brokerage:</strong> Flexible, easy-access money (good for early retirement or bridge years), but fully taxable.</li>
-                    </ul>
-                    <p style="font-size:0.78rem;">
-                        The engine here is: max out 401(k) first, then IRAs, then let excess flow into taxable brokerage.
-                        That keeps more of your growth sheltered while still building a flexible pool of money you can tap before traditional retirement age.
-                    </p>
+            <div class="input-group">
+                <label for="ssN">Social Security at retirement, monthly</label>
+                <div class="dual">
+                    <input type="range" id="ssR" min="0" max="8000" step="50" value="2500" aria-label="Social Security slider">
+                    <span class="numwrap"><span class="unit">$</span><input type="number" id="ssN" min="0" step="50" value="2500"></span>
                 </div>
+                <p class="help">In today's dollars, household total. Your estimate from ssa.gov works here.</p>
+            </div>
 
-                <div>
-                    <h4>VOO vs VTI – Why Picking One Is Usually Smarter</h4>
-                    <p>
-                        It is generally smarter to pick <strong>only one</strong> of these funds. Investing in both
-                        <span class="tag tag-voo">VOO</span> and <span class="tag tag-vti">VTI</span> adds complexity without providing
-                        meaningful diversification.
-                    </p>
-
-                    <h5>1. The Illusion of Diversification</h5>
-                    <ul>
-                        <li><strong>Extreme overlap:</strong> VTI is market-cap weighted. Because the S&P 500 companies are so massive, they make up roughly <strong>80–85%</strong> of VTI by weight.</li>
-                        <li><strong>Correlation ~0.99:</strong> If VOO goes up 1%, VTI will usually move very close to 1% as well.</li>
-                        <li><strong>Result:</strong> Holding both just tilts you slightly toward large-cap stocks. You are mostly buying the same companies twice.</li>
-                    </ul>
-
-                    <h5>2. Comparison at a Glance</h5>
-                    <table class="mini-table">
-                        <thead>
-                            <tr>
-                                <th>Feature</th>
-                                <th>VOO (S&P 500)</th>
-                                <th>VTI (Total Market)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Scope</td>
-                                <td>Top ~500 U.S. companies (Large-Cap)</td>
-                                <td>~3,600+ U.S. companies (Large, Mid, &amp; Small)</td>
-                            </tr>
-                            <tr>
-                                <td>Expense Ratio</td>
-                                <td>0.03%</td>
-                                <td>0.03%</td>
-                            </tr>
-                            <tr>
-                                <td>Top 10 Holdings</td>
-                                <td>Apple, Microsoft, NVIDIA, etc.</td>
-                                <td>Almost identical to VOO (slightly lower weights)</td>
-                            </tr>
-                            <tr>
-                                <td>Performance</td>
-                                <td>Slightly higher in recent tech/large-cap rallies</td>
-                                <td>Very similar long-term performance</td>
-                            </tr>
-                            <tr>
-                                <td>Volatility</td>
-                                <td>Slightly lower</td>
-                                <td>Slightly higher (more small/mid caps)</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <h5>3. Which One Should You Pick?</h5>
-                    <p><strong>Fees (0.03%) and tax efficiency are essentially the same.</strong> The choice is about philosophy:</p>
-                    <ul>
-                        <li><strong>Choose VOO if:</strong>
-                            <ul>
-                                <li>You believe the largest, most established U.S. companies will continue to drive the market.</li>
-                                <li>You want a “cleaner” portfolio focused on blue-chip names and prefer to exclude smaller, riskier companies.</li>
-                            </ul>
-                        </li>
-                        <li><strong>Choose VTI if:</strong>
-                            <ul>
-                                <li>You want to own <em>everything</em> and never worry about missing a small-cap or mid-cap breakout decade.</li>
-                                <li>You prefer a logically “complete” passive strategy that does not require guessing which company size will win.</li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <h5>4. Strategic Exception – Tax-Loss Harvesting</h5>
-                    <p style="font-size:0.8rem;">
-                        The main time it makes sense to actively “use” both funds is in a <strong>taxable brokerage account</strong> for
-                        <strong>tax-loss harvesting</strong>:
-                    </p>
-                    <ul style="font-size:0.8rem;">
-                        <li>They track different indices (S&amp;P 500 vs CRSP US Total Market) but behave very similarly.</li>
-                        <li>If VOO drops, you can sell it to realize a tax loss and immediately buy VTI to stay invested.</li>
-                        <li>This usually avoids the IRS “wash sale” rule, since the funds are not considered <em>substantially identical</em> by most interpretations.</li>
-                    </ul>
+            <div class="input-group">
+                <label for="otherIncN">Other guaranteed income, monthly</label>
+                <div class="dual">
+                    <input type="range" id="otherIncR" min="0" max="15000" step="50" value="0" aria-label="Other guaranteed income slider">
+                    <span class="numwrap"><span class="unit">$</span><input type="number" id="otherIncN" min="0" step="50" value="0"></span>
                 </div>
+                <p class="help">Pension, VA disability, annuity, or other income that does not depend on the portfolio, in today's dollars.</p>
+            </div>
 
-                <div>
-                    <h4>VOO / VTI Summary</h4>
-                    <p style="font-size:0.8rem;">
-                        For most long-term investors, <strong>picking one core fund (VOO or VTI) and sticking with it</strong> is simpler and cleaner.
-                        If you also want a tax-loss harvesting partner in taxable accounts, you can keep the other fund on standby for that specific purpose.
-                    </p>
+            <div class="input-group">
+                <label for="wrN">Withdrawal rate for income estimates</label>
+                <div class="dual">
+                    <input type="range" id="wrR" min="2" max="8" step="0.1" value="4" aria-label="Withdrawal rate slider">
+                    <span class="numwrap"><input type="number" id="wrN" min="2" max="8" step="0.1" value="4"><span class="unit">%</span></span>
                 </div>
-
-                <div class="broker-links">
-                    <strong>Open an account:</strong>
-                    <ul>
-                        <li>
-                            <a href="https://investor.vanguard.com/home" target="_blank" rel="noopener noreferrer">
-                                Open an account at Vanguard
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://www.fidelity.com/open-account/overview" target="_blank" rel="noopener noreferrer">
-                                Open an account at Fidelity
-                            </a>
-                        </li>
-                    </ul>
-                    <span style="font-size:0.75rem; color:var(--text-muted);">
-                        (This tool is for education only and does not replace personalized investment advice.)
-                    </span>
-                </div>
+                <p class="help">Used for the target portfolio and the monthly income estimates. Higher means more income now and more risk later.</p>
             </div>
         </div>
-    </aside>
 
-    <!-- Main Content -->
-    <main>
-        <!-- Stats -->
+        <div class="card">
+            <div class="card-header">Assumptions and risk</div>
+
+            <div class="input-group">
+                <label for="inflN">Inflation</label>
+                <div class="dual">
+                    <input type="range" id="inflR" min="0" max="8" step="0.1" value="2.5" aria-label="Inflation slider">
+                    <span class="numwrap"><input type="number" id="inflN" min="0" max="8" step="0.1" value="2.5"><span class="unit">%</span></span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="planRetN">Planning return (Monte Carlo and custom analysis)</label>
+                <div class="dual">
+                    <input type="range" id="planRetR" min="4" max="13" step="0.1" value="8" aria-label="Planning return slider">
+                    <span class="numwrap"><input type="number" id="planRetN" min="4" max="13" step="0.1" value="8"><span class="unit">%</span></span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="volN">Annual volatility (Monte Carlo)</label>
+                <div class="dual">
+                    <input type="range" id="volR" min="5" max="30" step="0.5" value="15" aria-label="Volatility slider">
+                    <span class="numwrap"><input type="number" id="volN" min="5" max="30" step="0.5" value="15"><span class="unit">%</span></span>
+                </div>
+                <p class="help">How widely yearly returns swing around the planning return. Broad U.S. stock funds have historically been near 15 to 20 percent.</p>
+            </div>
+
+            <div class="input-group">
+                <label for="dropN">Market drop at retirement</label>
+                <div class="dual">
+                    <input type="range" id="dropR" min="0" max="50" step="1" value="0" aria-label="Market drop slider">
+                    <span class="numwrap"><input type="number" id="dropN" min="0" max="50" step="1" value="0"><span class="unit">%</span></span>
+                </div>
+                <p class="help">A one time hit to the portfolio in the first retirement year, for stress testing. Zero means no drop.</p>
+            </div>
+
+            <div class="input-group">
+                <label for="targetN">Target portfolio at retirement</label>
+                <div class="dual">
+                    <input type="range" id="targetR" min="0" max="10000000" step="25000" value="1250000" aria-label="Target portfolio slider">
+                    <span class="numwrap"><span class="unit">$</span><input type="number" id="targetN" min="0" step="5000" value="1250000" data-manual="0"></span>
+                </div>
+                <p class="help">Starts from your spending need: annual spending minus guaranteed income, divided by the withdrawal rate. Edit it and it stays yours.</p>
+                <button class="btn small" id="targetReset" type="button">Use spending-based target</button>
+            </div>
+        </div>
+
+        <div class="card span2">
+            <div class="card-header">Where the annual investment goes</div>
+            <div class="breakdown-box" id="contribBreakdown"></div>
+            <p class="card-note">Routing uses 2026 401(k) and IRA limits for your age and filing status: fill the 401(k) first, then IRAs, then taxable brokerage. Limits in the routing update as the plan ages into catch-up years; the box shows the first year.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     SECTION 2: OUTLOOK
+     Deterministic accumulation at 7 / 10 / 12.9 percent, shown in
+     nominal dollars and in today's dollars, plus goal tools.
+     ============================================================ -->
+<section id="outlook">
+    <h2 class="section-title">Outlook</h2>
+    <p class="section-sub">What the saving plan builds by retirement under three return paths, and whether it covers the target.</p>
+
+    <div class="stats-grid">
+        <div class="stat-box highlight">
+            <h4>Retirement age</h4>
+            <div class="value" id="endAge">65</div>
+            <div class="sub-value">Plan through age <span id="endAgeThru">95</span></div>
+        </div>
+        <div class="stat-box">
+            <h4>Total invested</h4>
+            <div class="value" id="totalInvested">$1.2M</div>
+            <div class="sub-value">Starting balance plus contributions</div>
+        </div>
+        <div class="stat-box">
+            <h4>Target portfolio</h4>
+            <div class="value" id="statTarget">$1.25M</div>
+            <div class="sub-value" id="statTargetSub">From spending need</div>
+        </div>
+        <div class="stat-box green">
+            <h4>Target coverage (Moderate)</h4>
+            <div class="value" id="statCoverage">100%</div>
+            <div class="sub-value" id="statCoverageSub">On target</div>
+        </div>
+        <div class="stat-box">
+            <h4>Sustainable income (Moderate)</h4>
+            <div class="value" id="statIncome">$0/mo</div>
+            <div class="sub-value">At the chosen withdrawal rate</div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-box orange">
+            <h4>Conservative (7%)</h4>
+            <div class="value" id="resCon">$2.1M</div>
+            <div class="sub-value" id="incCon">$7k/mo</div>
+            <div class="sub-value" id="realCon">Today's dollars: $0</div>
+        </div>
+        <div class="stat-box green">
+            <h4>Moderate (10%)</h4>
+            <div class="value" id="resMod">$3.5M</div>
+            <div class="sub-value" id="incMod">$11k/mo</div>
+            <div class="sub-value" id="realMod">Today's dollars: $0</div>
+        </div>
+        <div class="stat-box purple">
+            <h4>Historical (12.9%)</h4>
+            <div class="value" id="resHist">$6.2M</div>
+            <div class="sub-value" id="incHist">$20k/mo</div>
+            <div class="sub-value" id="realHist">Today's dollars: $0</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Growth projection
+            <div style="font-size: 0.75rem; font-weight: 500; display: flex; gap: 10px; flex-wrap: wrap;">
+                <span style="color: var(--accent-purple)">-- Historical</span>
+                <span style="color: var(--accent-green)">── Moderate</span>
+                <span style="color: var(--accent-orange)">── Conservative</span>
+            </div>
+        </div>
+        <div class="chart-wrapper">
+            <svg id="mainChart" preserveAspectRatio="none" role="img" aria-label="Accumulation growth chart"></svg>
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+    </div>
+
+    <div class="plan-grid">
+        <div class="card">
+            <div class="card-header">Goal tools</div>
+            <div class="breakdown-box">
+                <div class="breakdown-row"><span class="bd-label">Financial Independence age (Moderate)</span><span class="bd-val" id="fiAge">Not in horizon</span></div>
+                <div class="breakdown-row"><span class="bd-label">Coast number needed today</span><span class="bd-val" id="coastNeed">$0</span></div>
+                <div class="breakdown-row"><span class="bd-label">Coast status</span><span class="bd-val" id="coastStatus">Checking</span></div>
+                <div class="breakdown-row"><span class="bd-label">Required annual saving for target</span><span class="bd-val" id="reqAnnual">$0</span></div>
+                <div class="breakdown-row"><span class="bd-label">Required monthly saving</span><span class="bd-val" id="reqMonthly">$0</span></div>
+                <div class="breakdown-row"><span class="bd-label">Versus current annual saving</span><span class="bd-val" id="reqDiff">$0</span></div>
+            </div>
+            <p class="card-note">The Coast number is what you would need invested today so that, with no further contributions, the Moderate path reaches the target by retirement. The required saving solver uses the same monthly contribution pattern and your contribution increase setting.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Sensitivity: Moderate balance at retirement</div>
+            <div class="table-container" style="max-height:none;">
+                <table id="sensTable">
+                    <thead><tr><th>Return</th><th>Nominal</th><th>Today's dollars</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <p class="card-note">Same saving plan, different steady returns. Small return differences compound into large outcome differences.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     SECTION 3: INCOME
+     Retirement income and longevity simulator. The full cash
+     flow table lives in Details so this section stays readable.
+     ============================================================ -->
+<section id="income">
+    <h2 class="section-title">Income</h2>
+    <p class="section-sub">Retirement itself: spending, guaranteed income, and how long the portfolio lasts.</p>
+
+    <div class="card">
+        <div class="card-header">Income and longevity simulator</div>
+        <div class="input-group" style="max-width:420px;">
+            <label for="incomeScenario">Retirement scenario</label>
+            <select id="incomeScenario">
+                <option value="con">Conservative (7%)</option>
+                <option value="mod" selected>Moderate (10%)</option>
+                <option value="hist">Historical (12.9%)</option>
+            </select>
+            <p class="help">The scenario sets both the starting balance at retirement and the return during retirement.</p>
+        </div>
+
         <div class="stats-grid">
             <div class="stat-box highlight">
-                <h4>Retire Age</h4>
-                <div class="value" id="endAge">65</div>
-                <div class="sub-value">Target</div>
+                <h4>Funded through age</h4>
+                <div class="value" id="incFunded">95</div>
+                <div class="sub-value" id="incFundedSub">Full plan funded</div>
             </div>
             <div class="stat-box">
-                <h4>Invested</h4>
-                <div class="value" id="totalInvested">$1.2M</div>
-                <div class="sub-value">Principal</div>
+                <h4>Depletion age</h4>
+                <div class="value" id="incDeplete">None</div>
+                <div class="sub-value">Age the portfolio runs out, if it does</div>
             </div>
             <div class="stat-box">
-                <h4>Consrv (7%)</h4>
-                <div class="value" id="resCon">$2.1M</div>
-                <div class="sub-value" id="incCon">$7k/mo</div>
+                <h4>Ending balance</h4>
+                <div class="value" id="incEnd">$0</div>
+                <div class="sub-value" id="incEndReal">Today's dollars: $0</div>
             </div>
-            <div class="stat-box green">
-                <h4>Mod (10%)</h4>
-                <div class="value" id="resMod">$3.5M</div>
-                <div class="sub-value" id="incMod">$11k/mo</div>
+            <div class="stat-box">
+                <h4>First year net withdrawal</h4>
+                <div class="value" id="incFirstNet">$0</div>
+                <div class="sub-value">Spending minus guaranteed income</div>
             </div>
-            <div class="stat-box purple">
-                <h4>Hist (12.9%)</h4>
-                <div class="value" id="resHist">$6.2M</div>
-                <div class="sub-value" id="incHist">$20k/mo</div>
+            <div class="stat-box">
+                <h4>Total withdrawn</h4>
+                <div class="value" id="incTotalNet">$0</div>
+                <div class="sub-value">Across the whole retirement</div>
             </div>
         </div>
 
-        <!-- Chart -->
-        <div class="card">
-            <div class="card-header">
-                Growth Projection
-                <div style="font-size: 0.75rem; font-weight: 500; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <span style="color: var(--accent-purple)">-- Hist</span>
-                    <span style="color: var(--accent-green)">── Mod</span>
-                    <span style="color: var(--accent-orange)">── Consrv</span>
-                </div>
+        <div class="chart-wrapper">
+            <svg id="incomeChart" preserveAspectRatio="none" role="img" aria-label="Portfolio balance by age in retirement"></svg>
+        </div>
+        <p class="card-note">Timing, stated plainly: each year the net need (spending minus guaranteed income) leaves the portfolio at the start of the year, then what remains grows for the year. If guaranteed income beats spending, the surplus is added to the portfolio instead. The market drop setting, when above zero, lands once before the first retirement year. Full year by year numbers are under Details.</p>
+    </div>
+</section>
+
+<!-- ============================================================
+     SECTION 4: RISK LAB
+     Monte Carlo plus deterministic what-if comparisons.
+     ============================================================ -->
+<section id="risk">
+    <h2 class="section-title">Risk Lab</h2>
+    <p class="section-sub">Deterministic paths are tidy. Real markets are not. Stress the plan here.</p>
+
+    <div class="card">
+        <div class="card-header">Monte Carlo simulation</div>
+        <p class="card-note" style="margin:0 0 10px 0;">Runs <span id="mcPathsLabel">1,000</span> full lifetimes, from today through the plan-through age. Each year draws a return from a normal distribution using your planning return and volatility, floored at -80 percent and capped at 100 percent. Normally distributed returns are a teaching model, not a forecast: real markets have fatter tails and longer bad stretches.</p>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+            <button class="btn primary" id="mcRun" type="button">Run Monte Carlo</button>
+            <span class="stale-note" id="mcStatus">Not run yet.</span>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-box highlight">
+                <h4>Success rate</h4>
+                <div class="value" id="mcSuccess">Run to see</div>
+                <div class="sub-value">Portfolio never depleted before plan-through age</div>
             </div>
-            
-            <div class="chart-wrapper">
-                <svg id="mainChart" preserveAspectRatio="none"></svg>
-                <div id="tooltip" class="tooltip"></div>
+            <div class="stat-box">
+                <h4>Balance at retirement, 10th / 50th / 90th</h4>
+                <div class="value" id="mcRetPct" style="font-size:0.85rem;">Run to see</div>
+                <div class="sub-value">Percentiles across all paths</div>
+            </div>
+            <div class="stat-box">
+                <h4>Balance at plan-through age, 10th / 50th / 90th</h4>
+                <div class="value" id="mcEndPct" style="font-size:0.85rem;">Run to see</div>
+                <div class="sub-value">Depleted paths count as zero</div>
             </div>
         </div>
+        <div class="chart-wrapper">
+            <svg id="mcChart" preserveAspectRatio="none" role="img" aria-label="Monte Carlo percentile band chart"></svg>
+        </div>
+        <p class="card-note">The shaded band is the middle 80 percent of paths (10th to 90th percentile); the line is the median. Changing any input marks these results stale rather than silently rerunning.</p>
+    </div>
 
-        <!-- Yearly Data Table -->
-        <div class="card">
-            <div class="card-header">Yearly Performance Potentials</div>
+    <div class="card">
+        <div class="card-header">What-if scenarios</div>
+        <p class="table-explainer">Each case changes one thing from your current plan and reruns the income simulator. The baseline uses your selected income scenario and your market drop setting.</p>
+        <div class="table-container" style="max-height:none;">
+            <table id="whatifTable">
+                <thead><tr><th>Case</th><th>Result</th><th>Ending balance</th><th>Change vs baseline</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</section>
 
-            <div class="swr-controls">
-                <span>Withdrawal rate for income estimates:</span>
-                <select id="swrSelect" onchange="updateAll()">
-                    <option value="0.03">3%</option>
-                    <option value="0.04" selected>4%</option>
-                    <option value="0.05">5%</option>
-                    <option value="0.06">6%</option>
-                </select>
-                <span style="font-size:0.75rem;">
-                    Higher % = more income now, higher risk of depleting the portfolio sooner.
-                </span>
-            </div>
+<!-- ============================================================
+     SECTION 5: STRATEGY
+     The VOO versus VTI conclusion, condensed. The tools above
+     are the focus now; this section states the strategy plainly.
+     ============================================================ -->
+<section id="strategy">
+    <h2 class="section-title">Strategy</h2>
+    <p class="section-sub">The fund decision behind every simulation on this page.</p>
 
-            <div class="table-explainer">
-                Each row shows the projected end-of-year balance for each growth assumption. The smaller gray line
-                under each dollar amount is an estimated monthly income if you withdrew 
-                <strong><span id="swrLabel">4%</span> per year</strong> from that balance, split into 12 equal monthly payments.
-            </div>
+    <div class="card">
+        <div class="card-header">VOO or VTI: pick one core fund</div>
+        <div class="strategy-body">
+            <div class="callout"><strong>The short version:</strong> for most investors, choose ONE core fund, <span class="tag">VOO</span> or <span class="tag">VTI</span>, and stick with it. Holding both mostly buys the same large companies twice.</div>
+            <p><strong>Why one is enough.</strong> VTI holds the whole U.S. market, but it is weighted by company size, so the S&amp;P 500 companies inside VOO make up roughly 80 to 85 percent of VTI by weight. The two funds move almost in lockstep (correlation near 0.99). Owning both adds a second ticker, a second tax lot list, and rebalancing chores, without meaningfully changing what you own.</p>
+            <table class="mini-table">
+                <thead><tr><th>Feature</th><th>VOO (S&amp;P 500)</th><th>VTI (Total Market)</th></tr></thead>
+                <tbody>
+                    <tr><td>Scope</td><td>Top ~500 U.S. companies</td><td>~3,600+ U.S. companies</td></tr>
+                    <tr><td>Expense ratio</td><td>0.03%</td><td>0.03%</td></tr>
+                    <tr><td>Top holdings</td><td>Apple, Microsoft, NVIDIA, etc.</td><td>Nearly identical, slightly lower weights</td></tr>
+                    <tr><td>Character</td><td>Large, established companies only</td><td>Adds mid and small caps for completeness</td></tr>
+                </tbody>
+            </table>
+            <p><strong>Pick VOO</strong> if you want the large, profitable core of the U.S. market and nothing else. <strong>Pick VTI</strong> if owning everything, including small caps, helps you stay the course. Fees and tax efficiency are essentially the same; staying invested matters more than the choice between them.</p>
+            <h4>The one exception: tax-loss harvesting</h4>
+            <p>In a taxable brokerage account, the pair becomes useful. The funds track different indexes (S&amp;P 500 versus CRSP US Total Market) while behaving very similarly, so if one drops you can sell it to realize a tax loss and immediately buy the other to stay invested. Most interpretations treat them as not substantially identical for the wash sale rule. That is a tax tool, not a diversification strategy.</p>
+            <p><strong>Routing reminder:</strong> whichever fund you pick, new money still follows the routing in Plan: 401(k) room first, then IRAs, then taxable brokerage.</p>
+            <p style="font-size:0.8rem;">Open an account: <a href="https://investor.vanguard.com/home" target="_blank" rel="noopener noreferrer">Vanguard</a> · <a href="https://www.fidelity.com/open-account/overview" target="_blank" rel="noopener noreferrer">Fidelity</a>. Education only, not personalized investment advice.</p>
+        </div>
+    </div>
+</section>
 
+<!-- ============================================================
+     SECTION 6: DETAILS
+     Year by year tables, milestones, and the method notes.
+     ============================================================ -->
+<section id="details">
+    <h2 class="section-title">Details</h2>
+    <p class="section-sub">The numbers behind the charts, and exactly how this page calculates.</p>
+
+    <div class="card">
+        <div class="tabs" role="tablist" aria-label="Detail views">
+            <button type="button" role="tab" id="tabBtn-proj" aria-selected="true" aria-controls="tab-proj">Projection table</button>
+            <button type="button" role="tab" id="tabBtn-cash" aria-selected="false" aria-controls="tab-cash">Retirement cash flow</button>
+            <button type="button" role="tab" id="tabBtn-mile" aria-selected="false" aria-controls="tab-mile">Milestones</button>
+            <button type="button" role="tab" id="tabBtn-method" aria-selected="false" aria-controls="tab-method">Assumptions and method</button>
+        </div>
+
+        <div class="tab-panel" id="tab-proj" role="tabpanel">
+            <p class="table-explainer">Projected end of year balance for each return path. The smaller line under each amount is the monthly income at your withdrawal rate (<strong><span id="swrLabel">4%</span></strong>) from that balance.</p>
             <div class="table-container">
                 <table id="projTable">
-                    <thead>
-                        <tr>
-                            <th>Year</th>
-                            <th>Age</th>
-                            <th>Total Invested</th>
-                            <th>Conservative (7%)</th>
-                            <th>Moderate (10%)</th>
-                            <th>Historical (12.9%)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- JS -->
-                    </tbody>
+                    <thead><tr><th>Year</th><th>Age</th><th>Total invested</th><th>Conservative (7%)</th><th>Moderate (10%)</th><th>Historical (12.9%)</th></tr></thead>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>
-        
-        <!-- Milestones -->
-        <div class="card">
-            <div class="card-header">Key Milestones</div>
+
+        <div class="tab-panel" id="tab-cash" role="tabpanel" hidden>
+            <p class="table-explainer">Retirement cash flow from the Income simulator, using the scenario selected in the Income section. Amounts are nominal dollars (they include inflation).</p>
+            <div class="table-container">
+                <table id="cashTable">
+                    <thead><tr><th>Year</th><th>Age</th><th>Spending</th><th>Guaranteed income</th><th>Net withdrawal</th><th>Ending balance</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-mile" role="tabpanel" hidden>
             <div id="milestoneList" class="milestone-container"></div>
         </div>
-    </main>
-</div>
+
+        <div class="tab-panel" id="tab-method" role="tabpanel" hidden>
+            <div class="method-body">
+                <h4>Return scenarios</h4>
+                <ul>
+                    <li>Conservative 7%, Moderate 10%, and Historical 12.9% are fixed annual return assumptions for the deterministic paths. The 12.9% figure is a historical scenario carried from earlier versions of this tool; it is not a prediction, and no one can promise VOO or VTI will earn it again.</li>
+                    <li>The accumulation engine invests contributions monthly and compounds monthly at the scenario rate divided by 12, depositing each month's contribution before that month's growth, matching the original tool.</li>
+                    <li>Annual contributions grow each year by your contribution increase setting (0% keeps the original flat pattern).</li>
+                </ul>
+                <h4>Inflation and today's dollars</h4>
+                <ul>
+                    <li>Today's dollars figures divide a future amount by (1 + inflation) raised to the years from today, using your inflation setting.</li>
+                    <li>Retirement spending and guaranteed income start at the today's dollars amounts you entered and rise with inflation each year of retirement.</li>
+                </ul>
+                <h4>Retirement withdrawals</h4>
+                <ul>
+                    <li>Each retirement year: net withdrawal equals that year's spending minus guaranteed income (Social Security plus other guaranteed income). The net amount leaves at the start of the year, then the remainder grows at the scenario return for the year. If guaranteed income exceeds spending, the surplus is added to the portfolio at the start of the year instead.</li>
+                    <li>The market drop setting is applied once, before the first retirement year. A portfolio that cannot cover a year's net withdrawal is marked depleted at that age.</li>
+                </ul>
+                <h4>Monte Carlo</h4>
+                <ul>
+                    <li>Annual returns are drawn from a normal distribution centered on your planning return with your volatility as the standard deviation, floored at -80% and capped at +100%. Within each year the drawn return is spread evenly across months while contributions continue monthly.</li>
+                    <li>Success means the portfolio is never depleted before the plan-through age. Percentiles rank all paths, with depleted paths counted as zero at the plan-through age.</li>
+                </ul>
+                <h4>What is not modeled</h4>
+                <ul>
+                    <li>Taxes on withdrawals or gains, fees beyond the funds' own expense ratios, Social Security claiming age adjustments, healthcare shocks, long term care, irregular large expenses, pensions that do not keep up with inflation, and changing your plan mid-course. If those matter to your household, enter their cost in spending or guaranteed income, or talk with a qualified professional.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+</main>
 
 <script>
-    // 2026 Limits
-    const LIMITS = {
-        base401k: 24500, 
-        catchUp401k: 7500,
-        superCatchUp401k: 11250, // Ages 60-63
-        baseIRA: 7500, 
-        catchUpIRA: 1000 
-    };
+/* ============================================================
+   RETIREMENT STRATEGY CENTER: MODEL
+   Sections:
+     1. MODEL CONSTANTS (edit rates and limits here)
+     2. State and input reading (dual slider + number controls)
+     3. Accumulation engine (monthly contributions, monthly growth)
+     4. Goal solver, Coast, and Financial Independence checks
+     5. Retirement income and longevity simulator
+     6. What-if scenario lab
+     7. Rendering (stats, tables, milestones, breakdown)
+     8. Charts (accumulation, income, Monte Carlo band)
+     9. Monte Carlo simulation
+    10. Tabs, theme, print summary, offline download, init
+   ============================================================ */
 
-    const STATE = {
-        theme: 'light',
-        age: 40,
-        balance: 528000,
-        contribution: 30500,
-        years: 25,
-        status: 'single',
-        withdrawalRate: 0.04
-    };
+/* ---------- 1. MODEL CONSTANTS: changeable values live here ---------- */
+const MODEL = {
+    // Deterministic scenario annual returns (decimal)
+    rates: { con: 0.07, mod: 0.10, hist: 0.129 },
+    // 2026 contribution limits
+    limits: { base401k: 24500, catchUp401k: 7500, superCatchUp401k: 11250, baseIRA: 7500, catchUpIRA: 1000 },
+    // Monte Carlo path count (1,000 stays responsive; lower it on slow devices)
+    mcPaths: 1000,
+    // Monte Carlo random seed: fixed so a given plan reproduces the same run
+    mcSeed: 20261106
+};
 
-    function init() {
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            toggleTheme();
-        }
+const STATE = {
+    theme: 'light',
+    withdrawalRate: 0.04,
+    mcRan: false,
+    mcSuccessText: 'Not run yet',
+    last: null // last computed bundle, reused by chart re-renders on resize
+};
+
+/* ---------- 2. State and inputs ---------- */
+// Every dual control: range element id, number element id.
+// The number input is authoritative; the slider mirrors it.
+const DUALS = [
+    { r: 'age', n: 'ageNum' },
+    { r: 'years', n: 'yearsNum' },
+    { r: 'planAgeR', n: 'planAgeN' },
+    { r: 'balanceR', n: 'currentBalance' },
+    { r: 'contribR', n: 'annualContribution' },
+    { r: 'contribIncR', n: 'contribIncN' },
+    { r: 'spendingR', n: 'spendingN' },
+    { r: 'ssR', n: 'ssN' },
+    { r: 'otherIncR', n: 'otherIncN' },
+    { r: 'wrR', n: 'wrN' },
+    { r: 'inflR', n: 'inflN' },
+    { r: 'planRetR', n: 'planRetN' },
+    { r: 'volR', n: 'volN' },
+    { r: 'dropR', n: 'dropN' },
+    { r: 'targetR', n: 'targetN' }
+];
+
+function clampTo(el, v) {
+    const min = parseFloat(el.min), max = parseFloat(el.max);
+    if (!isNaN(min) && v < min) v = min;
+    if (!isNaN(max) && v > max) v = max;
+    return v;
+}
+
+function bindDuals() {
+    DUALS.forEach(function (d) {
+        const range = document.getElementById(d.r);
+        const num = document.getElementById(d.n);
+        if (!range || !num) return;
+        range.addEventListener('input', function () {
+            num.value = range.value;
+            if (d.n === 'targetN') markTargetManual();
+            updateAll();
+        });
+        // Typing: accept any parseable value without rewriting the field
+        // mid-keystroke; mirror it to the slider (clamped) and recalculate.
+        num.addEventListener('input', function () {
+            const v = parseFloat(num.value);
+            if (isNaN(v)) return;
+            range.value = clampTo(range, v);
+            if (d.n === 'targetN') markTargetManual();
+            updateAll();
+        });
+        // On commit (blur or Enter): clamp and write back a clean value.
+        num.addEventListener('change', function () {
+            let v = parseFloat(num.value);
+            if (isNaN(v)) v = parseFloat(range.value) || 0;
+            v = clampTo(num, v);
+            num.value = v;
+            range.value = clampTo(range, v);
+            updateAll();
+        });
+    });
+    document.getElementById('filingStatus').addEventListener('change', updateAll);
+    document.getElementById('incomeScenario').addEventListener('change', updateAll);
+    document.getElementById('targetReset').addEventListener('click', function () {
+        document.getElementById('targetN').setAttribute('data-manual', '0');
         updateAll();
+    });
+}
+
+function markTargetManual() {
+    document.getElementById('targetN').setAttribute('data-manual', '1');
+}
+function targetIsManual() {
+    return document.getElementById('targetN').getAttribute('data-manual') === '1';
+}
+
+function numVal(id, fallback) {
+    const v = parseFloat(document.getElementById(id).value);
+    return isNaN(v) ? (fallback || 0) : v;
+}
+
+// Read every input once per recalculation. Percent controls are
+// stored in percent points in the fields (4 means 4 percent).
+function getInputs() {
+    return {
+        age: Math.round(numVal('ageNum', 40)),
+        years: Math.round(numVal('yearsNum', 25)),
+        status: document.getElementById('filingStatus').value,
+        planAge: Math.round(numVal('planAgeN', 95)),
+        balance: numVal('currentBalance', 0),
+        contribution: numVal('annualContribution', 0),
+        contribInc: numVal('contribIncN', 0) / 100,
+        spending: numVal('spendingN', 0),
+        ssMonthly: numVal('ssN', 0),
+        otherMonthly: numVal('otherIncN', 0),
+        wr: numVal('wrN', 4) / 100,
+        inflation: numVal('inflN', 2.5) / 100,
+        planReturn: numVal('planRetN', 8) / 100,
+        volatility: numVal('volN', 15) / 100,
+        drop: numVal('dropN', 0) / 100,
+        target: numVal('targetN', 0),
+        scenario: document.getElementById('incomeScenario').value
+    };
+}
+
+// Spending-based target: what the portfolio must cover after
+// guaranteed income, at the chosen withdrawal rate.
+function derivedTarget(inp) {
+    const netAnnual = Math.max(0, inp.spending - (inp.ssMonthly + inp.otherMonthly) * 12);
+    if (inp.wr <= 0) return 0;
+    return Math.round(netAnnual / inp.wr / 1000) * 1000;
+}
+
+/* ---------- 3. Accumulation engine ---------- */
+// Monthly contributions, monthly compounding, deposit before growth
+// (the original tool's pattern). Contributions grow yearly by incRate.
+function accumulate(balance, firstYearAnnual, incRate, years, rate) {
+    let bal = balance;
+    let invested = balance;
+    const points = [{ offset: 0, balance: bal, invested: invested }];
+    const mRate = rate / 12;
+    for (let y = 0; y < years; y++) {
+        const annual = firstYearAnnual * Math.pow(1 + incRate, y);
+        const mContrib = annual / 12;
+        for (let m = 0; m < 12; m++) {
+            bal = (bal + mContrib) * (1 + mRate);
+            invested += mContrib;
+        }
+        points.push({ offset: y + 1, balance: bal, invested: invested });
+    }
+    return { points: points, final: bal, invested: invested };
+}
+
+/* ---------- 4. Goal solver ---------- */
+// Smallest first-year annual contribution (growing at incRate) whose
+// Moderate path reaches the target. Bisection on the engine itself.
+function solveRequiredContribution(inp, target) {
+    const test = function (c) {
+        return accumulate(inp.balance, c, inp.contribInc, inp.years, MODEL.rates.mod).final;
+    };
+    if (test(0) >= target) return 0;
+    let lo = 0, hi = 100000;
+    while (test(hi) < target && hi < 20000000) hi *= 2;
+    for (let i = 0; i < 60; i++) {
+        const mid = (lo + hi) / 2;
+        if (test(mid) >= target) hi = mid; else lo = mid;
+    }
+    return hi;
+}
+
+/* ---------- Contribution limits (2026), by age and filing status ---------- */
+function calculateLimits(age, status) {
+    let max401k = MODEL.limits.base401k;
+    let maxIRA = MODEL.limits.baseIRA;
+    if (age >= 60 && age <= 63) max401k += MODEL.limits.superCatchUp401k;
+    else if (age >= 50) max401k += MODEL.limits.catchUp401k;
+    if (age >= 50) maxIRA += MODEL.limits.catchUpIRA;
+    if (status === 'mfj_single') {
+        maxIRA *= 2;
+    } else if (status === 'mfj_dual') {
+        max401k *= 2;
+        maxIRA *= 2;
+    }
+    return { max401k: max401k, maxIRA: maxIRA };
+}
+
+function renderBreakdown(inp) {
+    const limits = calculateLimits(inp.age, inp.status);
+    let remaining = inp.contribution;
+    const fill401k = Math.min(remaining, limits.max401k); remaining -= fill401k;
+    const fillIRA = Math.min(remaining, limits.maxIRA); remaining -= fillIRA;
+    const fillTaxable = remaining;
+    const total = inp.contribution || 1;
+    const pct = function (x) { return inp.contribution > 0 ? Math.round((x / total) * 100) : 0; };
+    const pieces = [];
+    if (fill401k > 0) pieces.push(pct(fill401k) + '% into 401(k)/403(b)');
+    if (fillIRA > 0) pieces.push(pct(fillIRA) + '% into IRAs (Roth/Trad)');
+    if (fillTaxable > 0) pieces.push(pct(fillTaxable) + '% into taxable brokerage');
+    document.getElementById('contribBreakdown').innerHTML =
+        '<div class="breakdown-row"><span class="bd-label"><span class="dot" style="background:var(--accent-green)"></span> 401(k) / 403(b)</span><span class="bd-val">$' + fill401k.toLocaleString() + '</span></div>' +
+        '<div class="breakdown-row"><span class="bd-label"><span class="dot" style="background:var(--accent-purple)"></span> IRA (Roth/Trad)</span><span class="bd-val">$' + fillIRA.toLocaleString() + '</span></div>' +
+        '<div class="breakdown-row"><span class="bd-label"><span class="dot" style="background:var(--accent-orange)"></span> Taxable Brokerage</span><span class="bd-val">$' + fillTaxable.toLocaleString() + '</span></div>' +
+        '<div class="breakdown-row"><span class="bd-label">Total Annual</span><span class="bd-val">$' + inp.contribution.toLocaleString() + '</span></div>' +
+        '<div class="breakdown-notes">Routing summary: ' + (pieces.length ? pieces.join(', ') : 'no contributions entered yet.') + '</div>';
+}
+
+/* ---------- 5. Retirement income and longevity simulator ---------- */
+// Timing convention (also stated in the method notes): the year's net
+// need leaves at the start of the year, then the remainder grows.
+// A surplus (guaranteed income above spending) is added instead.
+function simulateRetirement(opts) {
+    let bal = opts.start * (1 - (opts.dropPct || 0));
+    const rows = [];
+    let depletedAge = null;
+    let firstNet = 0;
+    let totalWithdrawn = 0;
+    const startYear = new Date().getFullYear() + (opts.yearsUntilRetire || 0);
+    for (let age = opts.retireAge; age <= opts.thruAge; age++) {
+        const t = age - opts.retireAge;
+        const spend = opts.spending * Math.pow(1 + opts.inflation, t);
+        const guar = opts.guaranteed * Math.pow(1 + opts.inflation, t);
+        const net = spend - guar;
+        if (age === opts.retireAge) firstNet = net;
+        bal = bal - net;
+        if (bal < 0) {
+            depletedAge = age;
+            rows.push({ year: startYear + t, age: age, spend: spend, guar: guar, net: net, end: 0 });
+            bal = 0;
+            break;
+        }
+        if (net > 0) totalWithdrawn += net;
+        bal = bal * (1 + opts.rate);
+        rows.push({ year: startYear + t, age: age, spend: spend, guar: guar, net: net, end: bal });
+    }
+    const fundedThrough = depletedAge === null ? opts.thruAge : depletedAge - 1;
+    return {
+        rows: rows, depletedAge: depletedAge, fundedThrough: fundedThrough,
+        endBalance: bal, firstNet: firstNet, totalWithdrawn: totalWithdrawn
+    };
+}
+
+function incomeSimFor(inp, scenarioKey, overrides) {
+    const o = overrides || {};
+    const rate = MODEL.rates[scenarioKey];
+    const years = (o.years !== undefined) ? o.years : inp.years;
+    const contribution = (o.contribution !== undefined) ? o.contribution : inp.contribution;
+    const start = (o.start !== undefined) ? o.start
+        : accumulate(inp.balance, contribution, inp.contribInc, years, rate).final;
+    const retireAge = inp.age + years;
+    const thruAge = Math.max(inp.planAge, retireAge);
+    return simulateRetirement({
+        start: start,
+        rate: (o.rate !== undefined) ? o.rate : rate,
+        retireAge: retireAge,
+        thruAge: thruAge,
+        spending: (o.spending !== undefined) ? o.spending : inp.spending,
+        guaranteed: (inp.ssMonthly + inp.otherMonthly) * 12,
+        inflation: inp.inflation,
+        dropPct: (o.dropPct !== undefined) ? o.dropPct : inp.drop,
+        yearsUntilRetire: years
+    });
+}
+
+/* ---------- 6. What-if scenario lab ---------- */
+function renderWhatIf(inp, baseline) {
+    const scen = inp.scenario;
+    const cases = [
+        { name: 'Retire 3 years later', sim: incomeSimFor(inp, scen, { years: inp.years + 3 }) },
+        { name: 'Save $500 more per month', sim: incomeSimFor(inp, scen, { contribution: inp.contribution + 6000 }) },
+        { name: 'Spend $500 less per month', sim: incomeSimFor(inp, scen, { spending: Math.max(0, inp.spending - 6000) }) },
+        { name: '20% market drop at retirement', sim: incomeSimFor(inp, scen, { dropPct: 0.20 }) },
+        { name: 'Earn 2 points less in retirement', sim: incomeSimFor(inp, scen, { rate: MODEL.rates[scen] - 0.02 }) }
+    ];
+    const resultText = function (s) {
+        return s.depletedAge === null ? 'Funded through ' + s.fundedThrough : 'Depleted at ' + s.depletedAge;
+    };
+    const changeText = function (s) {
+        const yearDelta = s.fundedThrough - baseline.fundedThrough;
+        const moneyDelta = s.endBalance - baseline.endBalance;
+        let t = '';
+        if (yearDelta > 0) t = 'Funds ' + yearDelta + ' more year' + (yearDelta === 1 ? '' : 's');
+        else if (yearDelta < 0) t = 'Runs out ' + Math.abs(yearDelta) + ' year' + (yearDelta === -1 ? '' : 's') + ' sooner';
+        else t = 'Same funded span';
+        t += '; ends ' + (moneyDelta >= 0 ? '+' : '-') + formatMoneyCompact(Math.abs(moneyDelta)).replace('-', '') + ' vs baseline';
+        return t;
+    };
+    let html = '<tr><td><strong>Your plan (baseline)</strong></td><td>' + resultText(baseline) + '</td><td>' + formatMoneyCompact(baseline.endBalance) + '</td><td>Baseline</td></tr>';
+    cases.forEach(function (c) {
+        const cls = c.sim.fundedThrough > baseline.fundedThrough ? 'delta-pos' : (c.sim.fundedThrough < baseline.fundedThrough ? 'delta-neg' : '');
+        html += '<tr><td>' + c.name + '</td><td>' + resultText(c.sim) + '</td><td>' + formatMoneyCompact(c.sim.endBalance) + '</td><td class="' + cls + '">' + changeText(c.sim) + '</td></tr>';
+    });
+    document.querySelector('#whatifTable tbody').innerHTML = html;
+}
+
+/* ---------- 7. Rendering ---------- */
+function updateAll() {
+    const inp = getInputs();
+    STATE.withdrawalRate = inp.wr;
+
+    // Target: auto-derive until the user edits it.
+    if (!targetIsManual()) {
+        const derived = derivedTarget(inp);
+        inp.target = derived;
+        const tN = document.getElementById('targetN');
+        const tR = document.getElementById('targetR');
+        tN.value = derived;
+        tR.value = clampTo(tR, derived);
+        document.getElementById('statTargetSub').textContent = 'From spending need';
+    } else {
+        document.getElementById('statTargetSub').textContent = 'Your custom target';
     }
 
-    function toggleTheme() {
-        STATE.theme = STATE.theme === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', STATE.theme);
-        document.getElementById('themeBtn').innerText = STATE.theme === 'dark' ? '☀️' : '🌙';
+    const retireAge = inp.age + inp.years;
+    const thruAge = Math.max(inp.planAge, retireAge);
+    const deflator = Math.pow(1 + inp.inflation, inp.years);
+    const today = function (v) { return deflator > 0 ? v / deflator : v; };
+
+    // Accumulation at the three scenario rates
+    const acc = {};
+    Object.keys(MODEL.rates).forEach(function (k) {
+        acc[k] = accumulate(inp.balance, inp.contribution, inp.contribInc, inp.years, MODEL.rates[k]);
+    });
+    const fin = { con: acc.con.final, mod: acc.mod.final, hist: acc.hist.final };
+    const invested = acc.mod.invested;
+
+    // Headline stats
+    document.getElementById('endAge').textContent = retireAge;
+    document.getElementById('endAgeThru').textContent = thruAge;
+    document.getElementById('totalInvested').textContent = formatMoneyCompact(invested);
+    document.getElementById('statTarget').textContent = formatMoneyCompact(inp.target);
+    const coverage = inp.target > 0 ? (fin.mod / inp.target) * 100 : 0;
+    document.getElementById('statCoverage').textContent = inp.target > 0 ? Math.round(coverage) + '%' : 'No target';
+    const gap = fin.mod - inp.target;
+    document.getElementById('statCoverageSub').textContent = inp.target <= 0 ? 'Set a target to measure coverage'
+        : (gap >= 0 ? 'Surplus of ' + formatMoneyCompact(gap) + ' (Moderate)' : 'Shortfall of ' + formatMoneyCompact(Math.abs(gap)) + ' (Moderate)');
+    document.getElementById('statIncome').textContent = formatMonthlyIncome(fin.mod, inp.wr);
+
+    document.getElementById('resCon').textContent = formatMoneyCompact(fin.con);
+    document.getElementById('resMod').textContent = formatMoneyCompact(fin.mod);
+    document.getElementById('resHist').textContent = formatMoneyCompact(fin.hist);
+    document.getElementById('incCon').textContent = formatMonthlyIncome(fin.con, inp.wr);
+    document.getElementById('incMod').textContent = formatMonthlyIncome(fin.mod, inp.wr);
+    document.getElementById('incHist').textContent = formatMonthlyIncome(fin.hist, inp.wr);
+    document.getElementById('realCon').textContent = "Today's dollars: " + formatMoneyCompact(today(fin.con));
+    document.getElementById('realMod').textContent = "Today's dollars: " + formatMoneyCompact(today(fin.mod));
+    document.getElementById('realHist').textContent = "Today's dollars: " + formatMoneyCompact(today(fin.hist));
+
+    const wrPct = (inp.wr * 100).toFixed(1).replace(/\.0$/, '');
+    document.getElementById('swrLabel').textContent = wrPct + '%';
+
+    // Goal tools
+    let fiText = 'Not in horizon';
+    for (let i = 0; i < acc.mod.points.length; i++) {
+        if (acc.mod.points[i].balance >= inp.target && inp.target > 0) { fiText = 'Age ' + (inp.age + acc.mod.points[i].offset); break; }
+    }
+    document.getElementById('fiAge').textContent = fiText;
+    const coast = inp.target / Math.pow(1 + MODEL.rates.mod / 12, 12 * inp.years);
+    document.getElementById('coastNeed').textContent = formatMoneyFull(coast);
+    document.getElementById('coastStatus').textContent = inp.balance >= coast
+        ? 'Coast reached: current balance qualifies'
+        : 'Not yet: ' + formatMoneyCompact(coast - inp.balance) + ' short';
+    const required = solveRequiredContribution(inp, inp.target);
+    document.getElementById('reqAnnual').textContent = formatMoneyFull(required);
+    document.getElementById('reqMonthly').textContent = formatMoneyFull(required / 12);
+    const diffC = required - inp.contribution;
+    document.getElementById('reqDiff').textContent = diffC > 0
+        ? formatMoneyCompact(diffC) + ' more per year needed'
+        : (diffC < 0 ? formatMoneyCompact(Math.abs(diffC)) + ' per year of cushion' : 'Exactly on pace');
+
+    // Sensitivity strip
+    let sensHtml = '';
+    [0.05, 0.07, 0.08, 0.10, 0.129].forEach(function (r) {
+        const f = accumulate(inp.balance, inp.contribution, inp.contribInc, inp.years, r).final;
+        sensHtml += '<tr><td>' + (r * 100).toFixed(1).replace(/\.0$/, '') + '%</td><td>' + formatMoneyCompact(f) + '</td><td>' + formatMoneyCompact(today(f)) + '</td></tr>';
+    });
+    document.querySelector('#sensTable tbody').innerHTML = sensHtml;
+
+    // Income simulator (selected scenario)
+    const income = incomeSimFor(inp, inp.scenario, {});
+    document.getElementById('incFunded').textContent = income.fundedThrough;
+    document.getElementById('incFundedSub').textContent = income.depletedAge === null ? 'Full plan funded' : 'Portfolio runs out during retirement';
+    document.getElementById('incDeplete').textContent = income.depletedAge === null ? 'None' : income.depletedAge;
+    document.getElementById('incEnd').textContent = formatMoneyCompact(income.endBalance);
+    const endElapsed = (income.depletedAge === null ? thruAge : income.depletedAge) - retireAge;
+    const endReal = income.endBalance / Math.pow(1 + inp.inflation, inp.years + endElapsed);
+    document.getElementById('incEndReal').textContent = "Today's dollars: " + formatMoneyCompact(endReal);
+    document.getElementById('incFirstNet').textContent = formatMoneyFull(income.firstNet);
+    document.getElementById('incTotalNet').textContent = formatMoneyCompact(income.totalWithdrawn);
+
+    renderBreakdown(inp);
+    renderWhatIf(inp, income);
+    renderProjectionTable(inp, acc);
+    renderCashTable(income);
+    renderMilestones(inp.age);
+
+    STATE.last = { inp: inp, acc: acc, income: income };
+    renderChart(acc, inp);
+    renderIncomeChart(income, inp);
+
+    if (STATE.mcRan) {
+        document.getElementById('mcStatus').textContent = 'Inputs changed since the last run. Run again for updated results.';
+    }
+    renderPrintSummary(inp, income, coverage);
+}
+
+function renderPrintSummary(inp, income, coverage) {
+    const retireAge = inp.age + inp.years;
+    document.getElementById('printSummary').innerHTML =
+        '<h1>Retirement Strategy Report</h1><div class="print-grid">' +
+        '<div><strong>Projection:</strong> Age ' + inp.age + ' to ' + retireAge + ', plan through ' + Math.max(inp.planAge, retireAge) + '</div>' +
+        '<div><strong>Status:</strong> ' + inp.status.replace(/_/g, ' ').toUpperCase() + '</div>' +
+        '<div><strong>Start balance:</strong> ' + formatMoneyCompact(inp.balance) + '</div>' +
+        '<div><strong>Annual contribution:</strong> ' + formatMoneyCompact(inp.contribution) + '</div>' +
+        '<div><strong>Target coverage (Moderate):</strong> ' + (inp.target > 0 ? Math.round(coverage) + '%' : 'No target set') + '</div>' +
+        '<div><strong>Income plan:</strong> Funded through age ' + income.fundedThrough + (income.depletedAge ? ', depleted at ' + income.depletedAge : '') + '</div>' +
+        '<div><strong>Monte Carlo success:</strong> ' + STATE.mcSuccessText + '</div>' +
+        '</div>';
+}
+
+function renderProjectionTable(inp, acc) {
+    const tbody = document.querySelector('#projTable tbody');
+    let html = '';
+    const baseYear = new Date().getFullYear();
+    acc.mod.points.forEach(function (p, i) {
+        const con = acc.con.points[i].balance, mod = p.balance, hist = acc.hist.points[i].balance;
+        html += '<tr><td><strong>' + (baseYear + p.offset) + '</strong></td><td>' + (inp.age + p.offset) + '</td><td>' + formatMoneyCompact(p.invested) + '</td>' +
+            '<td>' + formatMoneyCompact(con) + '<span class="inc-cell">' + formatMonthlyIncome(con, inp.wr) + '</span></td>' +
+            '<td><strong style="color:var(--accent-green)">' + formatMoneyCompact(mod) + '</strong><span class="inc-cell">' + formatMonthlyIncome(mod, inp.wr) + '</span></td>' +
+            '<td><span style="color:var(--accent-purple)">' + formatMoneyCompact(hist) + '</span><span class="inc-cell">' + formatMonthlyIncome(hist, inp.wr) + '</span></td></tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function renderCashTable(income) {
+    const tbody = document.querySelector('#cashTable tbody');
+    let html = '';
+    income.rows.forEach(function (r) {
+        html += '<tr><td><strong>' + r.year + '</strong></td><td>' + r.age + '</td><td>' + formatMoneyFull(r.spend) + '</td><td>' + formatMoneyFull(r.guar) + '</td><td>' + formatMoneyFull(r.net) + '</td><td>' + formatMoneyFull(r.end) + '</td></tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function renderMilestones(currentAge) {
+    const container = document.getElementById('milestoneList');
+    const events = [
+        { age: 50, title: 'Catch-Up Contributions', desc: '+$7.5k to 401k, +$1k to IRA.' },
+        { age: 55, title: 'Rule of 55', desc: 'Penalty-free 401k withdrawals if separating from service.' },
+        { age: 59, title: '59\u00BD Full Access', desc: 'Penalty-free withdrawals from all retirement accounts.' },
+        { age: 60, title: 'Super Catch-Up (60 to 63)', desc: '401k catch-up increases to about $11,250.' },
+        { age: 65, title: 'Medicare Eligibility', desc: 'Primary health insurance coverage begins.' },
+        { age: 67, title: 'Social Security Full Age', desc: '100% benefit amount available.' },
+        { age: 73, title: 'RMDs Begin', desc: 'Mandatory withdrawals from Traditional accounts.' }
+    ];
+    let html = '';
+    events.forEach(function (ev) {
+        if (ev.age >= currentAge) {
+            html += '<div class="milestone' + (ev.age === currentAge ? ' active' : '') + '"><div class="age-badge">' + ev.age + '</div><div><h5>' + ev.title + '</h5><p>' + ev.desc + '</p></div></div>';
+        }
+    });
+    container.innerHTML = html || '<p class="card-note">All listed milestones are behind the current age.</p>';
+}
+
+/* ---------- Formatting helpers ---------- */
+function formatMoneyCompact(n) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(n);
+}
+function formatMoneyFull(n) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+}
+function formatMonthlyIncome(totalBalance, wr) {
+    const monthly = (totalBalance * (wr || 0.04)) / 12;
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(monthly) + '/mo';
+}
+</script>
+
+<script>
+/* ============================================================
+   CHARTS, MONTE CARLO, TABS, THEME, DOWNLOAD, INIT
+   ============================================================ */
+function createSVG(type, attrs) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', type);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+}
+
+// Shared axes: horizontal gridlines with money labels, plus x labels.
+function drawAxes(svg, maxVal, xLabels) {
+    const w = svg.clientWidth, h = svg.clientHeight;
+    const padLeft = 40, padRight = 10, padTop = 10, padBottom = 20;
+    const yScale = function (v) { return h - padBottom - (v / maxVal) * (h - padTop - padBottom); };
+    for (let i = 0; i <= 5; i++) {
+        const val = (maxVal / 5) * i;
+        const y = yScale(val);
+        svg.appendChild(createSVG('line', { x1: padLeft, y1: y, x2: w - padRight, y2: y, 'class': 'grid-line' }));
+        const text = createSVG('text', { x: padLeft - 5, y: y + 3, 'text-anchor': 'end', 'class': 'chart-label' });
+        text.textContent = formatMoneyCompact(val);
+        svg.appendChild(text);
+    }
+    const axisY = h - padBottom;
+    svg.appendChild(createSVG('line', { x1: padLeft, y1: axisY, x2: w - padRight, y2: axisY, 'class': 'axis-line' }));
+    xLabels.forEach(function (lab) {
+        const text = createSVG('text', { x: lab.x, y: axisY + 12, 'text-anchor': 'middle', 'class': 'chart-label' });
+        text.textContent = lab.t;
+        svg.appendChild(text);
+    });
+    return { w: w, h: h, padLeft: padLeft, padRight: padRight, padTop: padTop, padBottom: padBottom, yScale: yScale };
+}
+
+function renderChart(acc, inp) {
+    const svg = document.getElementById('mainChart');
+    if (!svg || !svg.clientWidth) return;
+    svg.innerHTML = '';
+    const pts = acc.mod.points;
+    const maxVal = Math.max.apply(null, acc.hist.points.map(function (p) { return p.balance; })) * 1.1 || 1;
+    const n = pts.length - 1;
+    const step = Math.max(1, Math.floor(pts.length / 6));
+    const labels = [];
+    const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    // x positions need the same geometry as drawAxes; compute inline
+    const w = svg.clientWidth, padLeft = 40, padRight = 10;
+    const xScale = function (i) { return padLeft + (i / Math.max(1, n)) * (w - padLeft - padRight); };
+    for (let i = 0; i < pts.length; i += step) labels.push({ x: xScale(i), t: String(new Date().getFullYear() + pts[i].offset) });
+    if ((pts.length - 1) % step !== 0) labels.push({ x: xScale(pts.length - 1), t: String(new Date().getFullYear() + n) });
+    const ax = drawAxes(svg, maxVal, labels);
+    const path = function (series) {
+        let d = 'M ' + xScale(0) + ' ' + ax.yScale(series[0].balance);
+        series.forEach(function (p, i) { d += ' L ' + xScale(i) + ' ' + ax.yScale(p.balance); });
+        return d;
+    };
+    svg.appendChild(createSVG('path', { d: path(acc.con.points), 'class': 'line-con' }));
+    svg.appendChild(createSVG('path', { d: path(acc.mod.points), 'class': 'line-mod' }));
+    svg.appendChild(createSVG('path', { d: path(acc.hist.points), 'class': 'line-hist' }));
+
+    // Hover tooltip
+    const overlay = createSVG('rect', { x: ax.padLeft, y: ax.padTop, width: ax.w - ax.padLeft - ax.padRight, height: ax.h - ax.padTop - ax.padBottom, fill: 'transparent' });
+    overlay.addEventListener('mousemove', function (e) {
+        const rect = svg.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const ratio = (x - ax.padLeft) / (ax.w - ax.padLeft - ax.padRight);
+        let idx = Math.round(ratio * n);
+        if (idx < 0) idx = 0;
+        if (idx > n) idx = n;
+        const tooltip = document.getElementById('tooltip');
+        tooltip.style.left = Math.min(Math.max(x + 10, 0), ax.w - 10) + 'px';
+        tooltip.style.top = Math.max(ax.yScale(acc.mod.points[idx].balance) - 70, 10) + 'px';
+        tooltip.style.opacity = 1;
+        tooltip.innerHTML = '<strong>Age ' + (inp.age + idx) + '</strong> (' + (new Date().getFullYear() + idx) + ')<br>Hist: ' +
+            formatMoneyCompact(acc.hist.points[idx].balance) + '<br>Mod: ' + formatMoneyCompact(acc.mod.points[idx].balance) +
+            '<br>Con: ' + formatMoneyCompact(acc.con.points[idx].balance);
+    });
+    overlay.addEventListener('mouseleave', function () { document.getElementById('tooltip').style.opacity = 0; });
+    svg.appendChild(overlay);
+}
+
+function renderIncomeChart(income, inp) {
+    const svg = document.getElementById('incomeChart');
+    if (!svg || !svg.clientWidth || !income.rows.length) return;
+    svg.innerHTML = '';
+    const maxVal = Math.max.apply(null, income.rows.map(function (r) { return r.end; })) * 1.1 || 1;
+    const w = svg.clientWidth, padLeft = 40, padRight = 10;
+    const n = income.rows.length - 1;
+    const xScale = function (i) { return padLeft + (i / Math.max(1, n)) * (w - padLeft - padRight); };
+    const step = Math.max(1, Math.floor(income.rows.length / 6));
+    const labels = [];
+    for (let i = 0; i < income.rows.length; i += step) labels.push({ x: xScale(i), t: 'Age ' + income.rows[i].age });
+    const ax = drawAxes(svg, maxVal, labels);
+    let d = 'M ' + xScale(0) + ' ' + ax.yScale(income.rows[0].end);
+    income.rows.forEach(function (r, i) { d += ' L ' + xScale(i) + ' ' + ax.yScale(r.end); });
+    svg.appendChild(createSVG('path', { d: d, 'class': 'line-inc' }));
+}
+
+/* ---------- Monte Carlo ---------- */
+// Deterministic seed so a given plan reproduces the same run.
+function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function () {
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+function makeGaussian(rand) {
+    let spare = null;
+    return function () {
+        if (spare !== null) { const v = spare; spare = null; return v; }
+        let u = 0, v = 0, s = 0;
+        do { u = rand() * 2 - 1; v = rand() * 2 - 1; s = u * u + v * v; } while (s >= 1 || s === 0);
+        const mul = Math.sqrt(-2 * Math.log(s) / s);
+        spare = v * mul;
+        return u * mul;
+    };
+}
+function percentile(sorted, p) {
+    if (!sorted.length) return 0;
+    const idx = Math.floor(p * (sorted.length - 1));
+    return sorted[idx];
+}
+
+function runMC() {
+    const inp = getInputs();
+    const retireAge = inp.age + inp.years;
+    const thruAge = Math.max(inp.planAge, retireAge);
+    const totalYears = thruAge - inp.age;
+    const rand = mulberry32(MODEL.mcSeed);
+    const gauss = makeGaussian(rand);
+    const draw = function () {
+        let r = inp.planReturn + gauss() * inp.volatility;
+        if (r < -0.80) r = -0.80;
+        if (r > 1.00) r = 1.00;
+        return r;
+    };
+    const guaranteed = (inp.ssMonthly + inp.otherMonthly) * 12;
+    const allPaths = [];
+    const retBalances = [];
+    const endBalances = [];
+    let successes = 0;
+
+    for (let p = 0; p < MODEL.mcPaths; p++) {
+        const arr = new Array(totalYears + 1);
+        let bal = inp.balance;
+        arr[0] = bal;
+        // Accumulation: monthly contributions, drawn annual return spread across months
+        for (let y = 0; y < inp.years; y++) {
+            const R = draw();
+            const f = Math.pow(1 + R, 1 / 12) - 1;
+            const mContrib = (inp.contribution * Math.pow(1 + inp.contribInc, y)) / 12;
+            for (let m = 0; m < 12; m++) bal = (bal + mContrib) * (1 + f);
+            arr[y + 1] = bal;
+        }
+        bal = bal * (1 - inp.drop);
+        retBalances.push(bal);
+        // Retirement: withdraw the year's net need at the start, then grow
+        let depleted = false;
+        for (let age = retireAge; age <= thruAge; age++) {
+            const idx = age - inp.age;
+            if (depleted) { arr[idx] = 0; continue; }
+            const net = (inp.spending - guaranteed) * Math.pow(1 + inp.inflation, age - retireAge);
+            bal = bal - net;
+            if (bal < 0) { depleted = true; bal = 0; }
+            else { bal = bal * (1 + draw()); }
+            arr[idx] = bal;
+        }
+        if (!depleted) successes++;
+        endBalances.push(bal);
+        allPaths.push(arr);
     }
 
-    function downloadPage() {
-        // Create a clone of the document to modify for saving
-        const docClone = document.documentElement.cloneNode(true);
-        
-        // Preserve current input values into the HTML attributes
-        docClone.querySelector('#age').setAttribute('value', STATE.age);
-        docClone.querySelector('#currentBalance').setAttribute('value', STATE.balance);
-        docClone.querySelector('#annualContribution').setAttribute('value', STATE.contribution);
-        docClone.querySelector('#years').setAttribute('value', STATE.years);
-        
-        // Handle select
-        const statusSelect = docClone.querySelector('#filingStatus');
-        const options = statusSelect.querySelectorAll('option');
-        options.forEach(opt => {
-            if (opt.value === STATE.status) opt.setAttribute('selected', 'selected');
-            else opt.removeAttribute('selected');
-        });
+    // Percentile band by age
+    const band = { ages: [], p10: [], p50: [], p90: [] };
+    for (let idx = 0; idx <= totalYears; idx++) {
+        const col = allPaths.map(function (a) { return a[idx]; }).sort(function (a, b) { return a - b; });
+        band.ages.push(inp.age + idx);
+        band.p10.push(percentile(col, 0.10));
+        band.p50.push(percentile(col, 0.50));
+        band.p90.push(percentile(col, 0.90));
+    }
+    const retSorted = retBalances.slice().sort(function (a, b) { return a - b; });
+    const endSorted = endBalances.slice().sort(function (a, b) { return a - b; });
+    const successPct = Math.round((successes / MODEL.mcPaths) * 1000) / 10;
 
-        // Handle withdrawal rate select
-        const swrSelectClone = docClone.querySelector('#swrSelect');
-        if (swrSelectClone) {
-            Array.from(swrSelectClone.options).forEach(opt => {
-                if (parseFloat(opt.value) === STATE.withdrawalRate) {
-                    opt.setAttribute('selected', 'selected');
-                } else {
-                    opt.removeAttribute('selected');
+    document.getElementById('mcSuccess').textContent = successPct + '%';
+    document.getElementById('mcRetPct').textContent =
+        formatMoneyCompact(percentile(retSorted, 0.10)) + ' / ' + formatMoneyCompact(percentile(retSorted, 0.50)) + ' / ' + formatMoneyCompact(percentile(retSorted, 0.90));
+    document.getElementById('mcEndPct').textContent =
+        formatMoneyCompact(percentile(endSorted, 0.10)) + ' / ' + formatMoneyCompact(percentile(endSorted, 0.50)) + ' / ' + formatMoneyCompact(percentile(endSorted, 0.90));
+
+    STATE.mcBand = band;
+    STATE.mcRan = true;
+    STATE.mcSuccessText = successPct + '% (' + MODEL.mcPaths.toLocaleString() + ' paths)';
+    renderMCChart(band);
+
+    // Refresh the print summary with the new success figure, then stamp status
+    if (STATE.last) {
+        const cov = STATE.last.inp.target > 0 ? (STATE.last.acc.mod.final / STATE.last.inp.target) * 100 : 0;
+        renderPrintSummary(STATE.last.inp, STATE.last.income, cov);
+    }
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0'), mm = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('mcStatus').textContent = 'Ran ' + MODEL.mcPaths.toLocaleString() + ' paths at ' + hh + ':' + mm + '. Results match the current inputs.';
+}
+
+function renderMCChart(band) {
+    const svg = document.getElementById('mcChart');
+    if (!svg || !svg.clientWidth || !band) return;
+    svg.innerHTML = '';
+    const maxVal = Math.max.apply(null, band.p90) * 1.05 || 1;
+    const w = svg.clientWidth, padLeft = 40, padRight = 10;
+    const n = band.ages.length - 1;
+    const xScale = function (i) { return padLeft + (i / Math.max(1, n)) * (w - padLeft - padRight); };
+    const step = Math.max(1, Math.floor(band.ages.length / 7));
+    const labels = [];
+    for (let i = 0; i < band.ages.length; i += step) labels.push({ x: xScale(i), t: 'Age ' + band.ages[i] });
+    const ax = drawAxes(svg, maxVal, labels);
+    let bandPath = 'M ' + xScale(0) + ' ' + ax.yScale(band.p90[0]);
+    band.p90.forEach(function (v, i) { bandPath += ' L ' + xScale(i) + ' ' + ax.yScale(v); });
+    for (let i = n; i >= 0; i--) bandPath += ' L ' + xScale(i) + ' ' + ax.yScale(band.p10[i]);
+    bandPath += ' Z';
+    svg.appendChild(createSVG('path', { d: bandPath, 'class': 'band' }));
+    let medPath = 'M ' + xScale(0) + ' ' + ax.yScale(band.p50[0]);
+    band.p50.forEach(function (v, i) { medPath += ' L ' + xScale(i) + ' ' + ax.yScale(v); });
+    svg.appendChild(createSVG('path', { d: medPath, 'class': 'line-med' }));
+}
+
+/* ---------- Tabs ---------- */
+function bindTabs() {
+    const buttons = document.querySelectorAll('.tabs button[role="tab"]');
+    buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            buttons.forEach(function (b) {
+                const selected = b === btn;
+                b.setAttribute('aria-selected', selected ? 'true' : 'false');
+                const panel = document.getElementById(b.getAttribute('aria-controls'));
+                if (panel) {
+                    if (selected) panel.removeAttribute('hidden');
+                    else panel.setAttribute('hidden', '');
                 }
             });
-        }
+        });
+    });
+}
 
-        const htmlContent = docClone.outerHTML;
-        const blob = new Blob([htmlContent], {type: 'text/html'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'retirement_strategy_tool.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
+/* ---------- Theme ---------- */
+function setTheme(mode) {
+    STATE.theme = mode;
+    document.documentElement.setAttribute('data-theme', mode);
+    document.getElementById('themeBtn').textContent = mode === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+    setTheme(STATE.theme === 'light' ? 'dark' : 'light');
+    if (STATE.last) { renderChart(STATE.last.acc, STATE.last.inp); renderIncomeChart(STATE.last.income, STATE.last.inp); }
+    if (STATE.mcBand) renderMCChart(STATE.mcBand);
+}
 
-    function updateAll() {
-        // Update State from inputs
-        STATE.age = parseInt(document.getElementById('age').value);
-        STATE.years = parseInt(document.getElementById('years').value);
-        STATE.balance = parseFloat(document.getElementById('currentBalance').value);
-        STATE.contribution = parseFloat(document.getElementById('annualContribution').value);
-        STATE.status = document.getElementById('filingStatus').value;
-
-        // Withdrawal rate
-        const swrSelect = document.getElementById('swrSelect');
-        if (swrSelect) {
-            STATE.withdrawalRate = parseFloat(swrSelect.value);
-        }
-        const swrLabel = document.getElementById('swrLabel');
-        if (swrLabel) {
-            const pct = (STATE.withdrawalRate * 100).toFixed(1).replace(/\.0$/, '');
-            swrLabel.innerText = pct + '%';
-        }
-
-        // Displays
-        document.getElementById('ageDisplay').innerText = STATE.age;
-        document.getElementById('yearsDisplay').innerText = STATE.years;
-        document.getElementById('endAge').innerText = STATE.age + STATE.years;
-
-        // Update Print Summary
-        const summary = document.getElementById('printSummary');
-        summary.innerHTML = `
-            <h1>Retirement Strategy Report</h1>
-            <div class="print-grid">
-                <div><strong>Projection:</strong> Age ${STATE.age} to ${STATE.age + STATE.years}</div>
-                <div><strong>Status:</strong> ${STATE.status.replace('_', ' ').toUpperCase()}</div>
-                <div><strong>Start Balance:</strong> ${formatMoneyCompact(STATE.balance)}</div>
-                <div><strong>Annual Contrib:</strong> ${formatMoneyCompact(STATE.contribution)}</div>
-            </div>
-        `;
-
-        // Calc
-        const results = calculateGrowth();
-        const final = results[results.length-1];
-        
-        // Update Breakdown
-        renderBreakdown(results[0].limits); // Use first year limits for display context
-
-        // Update Stats – using default 4% rule for headline income to keep it simple
-        document.getElementById('totalInvested').innerText = formatMoneyCompact(final.invested);
-        document.getElementById('resMod').innerText = formatMoneyCompact(final.mod);
-        document.getElementById('incMod').innerText = formatMonthlyIncome(final.mod);
-        document.getElementById('resCon').innerText = formatMoneyCompact(final.con);
-        document.getElementById('incCon').innerText = formatMonthlyIncome(final.con);
-        document.getElementById('resHist').innerText = formatMoneyCompact(final.hist);
-        document.getElementById('incHist').innerText = formatMonthlyIncome(final.hist);
-
-        // Render Viz
-        renderChart(results);
-        renderTable(results);
-        renderMilestones(STATE.age);
-    }
-
-    function calculateLimits(age, status) {
-        // 1. Calculate Max Capacity for each bucket based on Age & Status
-        let max401k = LIMITS.base401k;
-        let maxIRA = LIMITS.baseIRA;
-
-        // Age logic
-        if (age >= 60 && age <= 63) max401k += LIMITS.superCatchUp401k;
-        else if (age >= 50) max401k += LIMITS.catchUp401k;
-        
-        if (age >= 50) maxIRA += LIMITS.catchUpIRA;
-
-        // Status Logic
-        if (status === 'mfj_single') {
-            // 1 Earner: 1x 401k, 2x IRA (Spousal)
-            maxIRA *= 2; 
-        } else if (status === 'mfj_dual') {
-            // 2 Earners: 2x 401k, 2x IRA
-            max401k *= 2;
-            maxIRA *= 2;
-        }
-
-        return { max401k, maxIRA };
-    }
-
-    function renderBreakdown(limits) {
-        let remaining = STATE.contribution;
-        
-        // Priority Fill: 401k -> IRA -> Taxable
-        let fill401k = Math.min(remaining, limits.max401k);
-        remaining -= fill401k;
-        
-        let fillIRA = Math.min(remaining, limits.maxIRA);
-        remaining -= fillIRA;
-        
-        let fillTaxable = remaining; // Whatever is left
-
-        const total = STATE.contribution || 1; // avoid division by zero
-        const p401 = total > 0 ? Math.round((fill401k / total) * 100) : 0;
-        const pIRA = total > 0 ? Math.round((fillIRA / total) * 100) : 0;
-        const pTax = total > 0 ? Math.round((fillTaxable / total) * 100) : 0;
-
-        const pieces = [];
-        if (fill401k > 0) pieces.push(`${p401}% into 401(k)/403(b)`);
-        if (fillIRA > 0) pieces.push(`${pIRA}% into IRAs (Roth/Trad)`);
-        if (fillTaxable > 0) pieces.push(`${pTax}% into taxable brokerage`);
-
-        const box = document.getElementById('contribBreakdown');
-        box.innerHTML = `
-            <div class="breakdown-row">
-                <span class="bd-label"><span class="dot" style="background:var(--accent-green)"></span> 401(k) / 403(b)</span>
-                <span class="bd-val">$${fill401k.toLocaleString()}</span>
-            </div>
-            <div class="breakdown-row">
-                <span class="bd-label"><span class="dot" style="background:var(--accent-purple)"></span> IRA (Roth/Trad)</span>
-                <span class="bd-val">$${fillIRA.toLocaleString()}</span>
-            </div>
-            <div class="breakdown-row">
-                <span class="bd-label"><span class="dot" style="background:var(--accent-orange)"></span> Taxable Brokerage</span>
-                <span class="bd-val">$${fillTaxable.toLocaleString()}</span>
-            </div>
-            <div class="breakdown-row">
-                <span class="bd-label">Total Annual</span>
-                <span class="bd-val">$${STATE.contribution.toLocaleString()}</span>
-            </div>
-            <div class="breakdown-notes">
-                Routing summary: ${pieces.length ? pieces.join(", ") : "no contributions entered yet."}
-            </div>
-        `;
-    }
-
-    function calculateGrowth() {
-        let data = [];
-        let curCon = STATE.balance;
-        let curMod = STATE.balance;
-        let curHist = STATE.balance;
-        let invested = STATE.balance;
-        let currentAge = STATE.age;
-        
-        for (let i = 0; i <= STATE.years; i++) {
-            // Recalculate limits every year as age changes (Catch-up triggers)
-            const limits = calculateLimits(currentAge, STATE.status);
-            
-            data.push({
-                year: new Date().getFullYear() + i,
-                relYear: i,
-                age: currentAge,
-                con: curCon,
-                mod: curMod,
-                hist: curHist,
-                invested: invested,
-                limits: limits
+/* ---------- Offline download ---------- */
+// Generic state capture: every input, select, tab, and the theme are
+// written back into the cloned markup, so the saved copy reopens
+// exactly as configured. New controls are preserved automatically.
+function downloadPage() {
+    const docClone = document.documentElement.cloneNode(true);
+    document.querySelectorAll('input, select, textarea').forEach(function (el) {
+        if (!el.id) return;
+        const cloneEl = docClone.querySelector('#' + el.id);
+        if (!cloneEl) return;
+        if (el.tagName === 'SELECT') {
+            Array.from(cloneEl.options).forEach(function (opt) {
+                if (opt.value === el.value) opt.setAttribute('selected', 'selected');
+                else opt.removeAttribute('selected');
             });
-
-            if (i < STATE.years) {
-                let contrib = STATE.contribution;
-                invested += contrib;
-                
-                // Monthly Compounding
-                const mRateCon = 0.07 / 12;
-                const mRateMod = 0.10 / 12;
-                const mRateHist = 0.129 / 12; 
-                const mContrib = contrib / 12;
-
-                for(let m=0; m<12; m++) {
-                    curCon = (curCon + mContrib) * (1 + mRateCon);
-                    curMod = (curMod + mContrib) * (1 + mRateMod);
-                    curHist = (curHist + mContrib) * (1 + mRateHist);
-                }
-            }
-            currentAge++;
+        } else if (el.type === 'checkbox' || el.type === 'radio') {
+            if (el.checked) cloneEl.setAttribute('checked', 'checked');
+            else cloneEl.removeAttribute('checked');
+            cloneEl.value = el.value;
+        } else {
+            cloneEl.setAttribute('value', el.value);
         }
-        return data;
-    }
-
-    function renderTable(data) {
-        const tbody = document.querySelector('#projTable tbody');
-        tbody.innerHTML = '';
-        data.forEach(d => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>${d.year}</strong></td>
-                <td>${d.age}</td>
-                <td>${formatMoneyCompact(d.invested)}</td>
-                <td>
-                    ${formatMoneyCompact(d.con)}
-                    <span class="inc-cell">${formatMonthlyIncome(d.con)}</span>
-                </td>
-                <td>
-                    <strong style="color:var(--accent-green)">${formatMoneyCompact(d.mod)}</strong>
-                    <span class="inc-cell">${formatMonthlyIncome(d.mod)}</span>
-                </td>
-                <td>
-                    <span style="color:var(--accent-purple)">${formatMoneyCompact(d.hist)}</span>
-                    <span class="inc-cell">${formatMonthlyIncome(d.hist)}</span>
-                </td>
-            `;
-            tbody.appendChild(tr);
+        // Preserve data attributes (for example the target manual flag)
+        Array.from(el.attributes).forEach(function (attr) {
+            if (attr.name.indexOf('data-') === 0) cloneEl.setAttribute(attr.name, attr.value);
         });
-    }
-
-    function renderChart(data) {
-        const svg = document.getElementById('mainChart');
-        svg.innerHTML = '';
-        const w = svg.clientWidth;
-        const h = svg.clientHeight;
-        const padLeft = 40;
-        const padRight = 10;
-        const padTop = 10;
-        const padBottom = 20;
-
-        const maxVal = Math.max(...data.map(d => d.hist)) * 1.1;
-        
-        const xScale = (i) => padLeft + (i / (data.length - 1)) * (w - padLeft - padRight);
-        const yScale = (v) => h - padBottom - (v / maxVal) * (h - padTop - padBottom);
-
-        // Horizontal grid + Y-axis labels
-        for(let i=0; i<=5; i++) {
-            const val = (maxVal/5)*i;
-            const y = yScale(val);
-            
-            const line = createSVG('line', { x1: padLeft, y1: y, x2: w-padRight, y2: y, class: 'grid-line' });
-            const text = createSVG('text', { x: padLeft - 5, y: y + 3, 'text-anchor': 'end', class: 'chart-label' });
-            text.textContent = formatMoneyCompact(val);
-            svg.appendChild(line);
-            svg.appendChild(text);
+    });
+    // Tab state
+    document.querySelectorAll('.tabs button[role="tab"]').forEach(function (btn) {
+        const cloneBtn = docClone.querySelector('#' + btn.id);
+        if (cloneBtn) cloneBtn.setAttribute('aria-selected', btn.getAttribute('aria-selected'));
+        const panel = document.getElementById(btn.getAttribute('aria-controls'));
+        const clonePanel = docClone.querySelector('#' + btn.getAttribute('aria-controls'));
+        if (panel && clonePanel) {
+            if (panel.hasAttribute('hidden')) clonePanel.setAttribute('hidden', '');
+            else clonePanel.removeAttribute('hidden');
         }
+    });
+    docClone.setAttribute('data-theme', STATE.theme);
+    const htmlContent = '<!DOCTYPE html>\n' + docClone.outerHTML;
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'retirement_strategy_center.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
 
-        // X-axis line
-        const axisY = h - padBottom;
-        svg.appendChild(createSVG('line', {
-            x1: padLeft,
-            y1: axisY,
-            x2: w - padRight,
-            y2: axisY,
-            class: 'axis-line'
-        }));
+/* ---------- Init ---------- */
+function init() {
+    bindDuals();
+    bindTabs();
+    document.getElementById('mcRun').addEventListener('click', runMC);
+    document.getElementById('mcPathsLabel').textContent = MODEL.mcPaths.toLocaleString();
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
+    else setTheme('light');
+    // If a downloaded copy was saved with a tab open, honor it on load
+    const preSelected = document.querySelector('.tabs button[aria-selected="true"]');
+    if (preSelected && preSelected.id !== 'tabBtn-proj') preSelected.click();
+    updateAll();
+    runMC();
+    let resizeTimer = null;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+            if (STATE.last) { renderChart(STATE.last.acc, STATE.last.inp); renderIncomeChart(STATE.last.income, STATE.last.inp); }
+            if (STATE.mcBand) renderMCChart(STATE.mcBand);
+        }, 200);
+    });
+}
 
-        // X-axis year labels (roughly 6 ticks)
-        const step = Math.max(1, Math.floor(data.length / 6));
-        for (let i = 0; i < data.length; i += step) {
-            const d = data[i];
-            const x = xScale(i);
-            const text = createSVG('text', {
-                x,
-                y: axisY + 12,
-                'text-anchor': 'middle',
-                class: 'chart-label'
-            });
-            text.textContent = d.year;
-            svg.appendChild(text);
-        }
-        // Ensure last year label is shown
-        const lastIndex = data.length - 1;
-        if ((lastIndex % step) !== 0) {
-            const dLast = data[lastIndex];
-            const xLast = xScale(lastIndex);
-            const textLast = createSVG('text', {
-                x: xLast,
-                y: axisY + 12,
-                'text-anchor': 'middle',
-                class: 'chart-label'
-            });
-            textLast.textContent = dLast.year;
-            svg.appendChild(textLast);
-        }
+// Handles for external calculation checks and debugging
+window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC };
 
-        // Paths
-        let pathMod = `M ${xScale(0)} ${yScale(data[0].mod)}`;
-        let pathCon = `M ${xScale(0)} ${yScale(data[0].con)}`;
-        let pathHist = `M ${xScale(0)} ${yScale(data[0].hist)}`;
-        
-        data.forEach((d, i) => {
-            pathMod += ` L ${xScale(i)} ${yScale(d.mod)}`;
-            pathCon += ` L ${xScale(i)} ${yScale(d.con)}`;
-            pathHist += ` L ${xScale(i)} ${yScale(d.hist)}`;
-        });
-
-        svg.appendChild(createSVG('path', { d: pathCon, class: 'line-con' }));
-        svg.appendChild(createSVG('path', { d: pathMod, class: 'line-mod' }));
-        svg.appendChild(createSVG('path', { d: pathHist, class: 'line-hist' }));
-
-        // Interactive Overlay
-        const overlay = createSVG('rect', {
-            x: padLeft,
-            y: padTop,
-            width: w - padLeft - padRight,
-            height: h - padTop - padBottom,
-            fill: 'transparent'
-        });
-
-        overlay.onmousemove = (e) => {
-            const rect = svg.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const ratio = (x - padLeft) / (w - padLeft - padRight);
-            let idx = Math.round(ratio * (data.length - 1));
-            if (idx < 0) idx = 0;
-            if (idx >= data.length) idx = data.length - 1;
-            
-            const pt = data[idx];
-            const tooltip = document.getElementById('tooltip');
-            
-            // Tooltip position near edges
-            let toolX = Math.min(Math.max(x + 10, 0), w - 10);
-            let toolY = Math.max(yScale(pt.mod) - 70, 10);
-
-            tooltip.style.left = toolX + 'px';
-            tooltip.style.top = toolY + 'px';
-            tooltip.style.opacity = 1;
-            tooltip.innerHTML = `
-                <strong>Age ${pt.age}</strong> (${pt.year})<br>
-                Hist: ${formatMoneyCompact(pt.hist)}<br>
-                Mod: ${formatMoneyCompact(pt.mod)}<br>
-                Con: ${formatMoneyCompact(pt.con)}
-            `;
-        };
-        overlay.onmouseleave = () => {
-            document.getElementById('tooltip').style.opacity = 0;
-        };
-        svg.appendChild(overlay);
-    }
-
-    function renderMilestones(currentAge) {
-        const container = document.getElementById('milestoneList');
-        container.innerHTML = '';
-
-        const events = [
-            { age: 50, title: "Catch-Up Contributions", desc: "+$7.5k to 401k, +$1k to IRA." },
-            { age: 55, title: "Rule of 55", desc: "Penalty-free 401k withdrawals if separating from service." },
-            { age: 59, title: "59½ Full Access", desc: "Penalty-free withdrawals from all retirement accounts." },
-            { age: 60, title: "Super Catch-Up (60-63)", desc: "401k Catch-up increases to ~$11,250." },
-            { age: 65, title: "Medicare Eligibility", desc: "Primary health insurance coverage begins." },
-            { age: 67, title: "Social Security Full Age", desc: "100% benefit amount available." },
-            { age: 73, title: "RMDs Begin", desc: "Mandatory withdrawals from Traditional accounts." }
-        ];
-
-        events.forEach(ev => {
-            if (ev.age >= currentAge) {
-                const div = document.createElement('div');
-                div.className = `milestone ${ev.age === currentAge ? 'active' : ''}`;
-                div.innerHTML = `
-                    <div class="age-badge">${ev.age}</div>
-                    <div class="milestone-details">
-                        <h5>${ev.title}</h5>
-                        <p>${ev.desc}</p>
-                    </div>
-                `;
-                container.appendChild(div);
-            }
-        });
-    }
-
-    function createSVG(type, attrs) {
-        const el = document.createElementNS("http://www.w3.org/2000/svg", type);
-        for (const k in attrs) el.setAttribute(k, attrs[k]);
-        return el;
-    }
-
-    function formatMoneyCompact(n) {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            notation: "compact",
-            maximumFractionDigits: 1
-        }).format(n);
-    }
-    
-    function formatMonthlyIncome(totalBalance) {
-        const rate = STATE.withdrawalRate || 0.04;
-        const monthly = (totalBalance * rate) / 12;
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            maximumFractionDigits: 0
-        }).format(monthly) + "/mo";
-    }
-
-    init();
-    window.addEventListener('resize', updateAll);
+init();
 </script>
 
 <footer class="nb-footer">
-    <p class="nb-footer-sub" style="margin-bottom:6px">An educational tool for exploring how two low-cost index funds performed across past market periods. It is a simulator, not financial advice.</p>
     <p>A <strong>Northbrand Collective</strong> project &middot; <a href="https://northbrand.net">northbrand.net</a></p>
     <p class="nb-footer-sub">Simulations based on VOO and VTI outcomes. Educational only, not financial advice.</p>
 </footer>
