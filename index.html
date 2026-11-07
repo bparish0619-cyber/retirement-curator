@@ -115,19 +115,19 @@
         .plan-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
         @media (min-width: 900px) { .plan-grid { grid-template-columns: 1fr 1fr; } .plan-grid .span2 { grid-column: span 2; } }
 
-        /* --- Dual controls: every slider pairs with an editable number --- */
+        /* --- Number controls: every setting is a number box (number entry only,
+           set 2026-11-07 at Brandon's direction; the sliders were removed) --- */
         .input-group { margin-bottom: 16px; }
         .input-group:last-child { margin-bottom: 4px; }
         .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
         .input-group .help { font-size: 0.78rem; color: var(--text-muted); margin-top: 5px; line-height: 1.4; }
         .dual { display: flex; align-items: center; gap: 10px; }
-        .dual input[type="range"] { flex: 1 1 auto; min-width: 0; accent-color: var(--primary); height: 44px; cursor: pointer; }
         .dual .numwrap { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
         .dual input[type="number"], .input-group input[type="number"], .input-group select {
             padding: 10px; border-radius: 12px; border: 1px solid var(--border);
             background: var(--bg-color); color: var(--text-main); font-size: 1rem; min-height: 44px;
         }
-        .dual input[type="number"] { width: 104px; }
+        .dual input[type="number"] { width: 132px; }
         .dual .unit { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
         .input-group select { width: 100%; appearance: none; }
         .input-group input:focus, .input-group select:focus { outline: 2px solid var(--primary); border-color: transparent; }
@@ -241,10 +241,10 @@
 
         /* --- Contribution routing breakdown --- */
         .breakdown-box { background: var(--milestone-bg); border-radius: 12px; padding: 12px; font-size: 0.85rem; border: 1px solid var(--border); }
-        .breakdown-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .breakdown-row { display: flex; justify-content: space-between; flex-wrap: wrap; column-gap: 10px; margin-bottom: 6px; }
         .breakdown-row:last-child { margin-bottom: 0; padding-top: 6px; border-top: 1px solid var(--border); font-weight: 700; }
-        .bd-label { color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-        .bd-val { font-family: monospace; font-weight: 600; }
+        .bd-label { color: var(--text-muted); display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .bd-val { font-family: monospace; font-weight: 600; overflow-wrap: anywhere; }
         .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
         .breakdown-notes { margin-top: 8px; font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
 
@@ -332,7 +332,9 @@
             .chart-wrapper { height: 220px; padding: 6px 0 18px 28px; }
             table { font-size: 0.75rem; }
             th, td { padding: 6px 4px; }
-            .dual input[type="number"] { width: 88px; }
+            .dual { width: 100%; }
+            .dual .numwrap { flex: 1 1 auto; min-width: 0; }
+            .dual input[type="number"] { flex: 1 1 auto; width: 100%; min-width: 0; }
         }
 
         /* --- Print: the report --- */
@@ -435,18 +437,19 @@
         </div>
     </div>
     <div class="lasting-line" id="simpleLasting">At your planned retirement age, your money is projected to last through your plan-through age.</div>
+    <p class="simple-note" id="simpleSpendGuide" style="display:none;"></p>
     <p class="simple-note">These answers use the Moderate return path and the standard assumptions. Advanced lets you test other returns, inflation, market drops, and risk.</p>
     <p class="simple-note">The investing approach behind this page is one core fund, VOO or VTI, held steadily. The full reasoning lives in Advanced, under Strategy.</p>
 </section>
 
 <!-- ============================================================
      SECTION 1: PLAN
-     Every slider is paired with an editable number input.
-     The number input is authoritative; the slider mirrors it.
+     Every setting is a number box. Number entry only
+     (sliders removed 2026-11-07 at Brandon's direction).
      ============================================================ -->
 <section id="plan">
     <h2 class="section-title">Plan</h2>
-    <p class="section-sub adv-only">Start with the household facts. You can stop after the first two cards and still get a complete result from Outlook and Income. Every slider has a number box beside it: drag, type, or step, whichever you prefer.</p>
+    <p class="section-sub adv-only">Start with the household facts. You can stop after the first two cards and still get a complete result from Outlook and Income. Every setting is a number box: type the exact figure you want.</p>
     <p class="section-sub simple-only">Your numbers. Four quick things, and everything else is set for you.</p>
 
     <div class="card guide-card no-print adv-only" id="guideCard">
@@ -482,7 +485,6 @@
             <div class="input-group">
                 <label for="ageNum">Current age</label>
                 <div class="dual">
-                    <input type="range" id="age" min="20" max="70" step="1" value="40" aria-label="Current age slider">
                     <span class="numwrap"><input type="number" id="ageNum" min="20" max="70" step="1" value="40"><span class="unit">yrs</span></span>
                 </div>
             </div>
@@ -490,7 +492,6 @@
             <div class="input-group">
                 <label for="yearsNum">Years until retirement</label>
                 <div class="dual">
-                    <input type="range" id="years" min="5" max="40" step="1" value="25" aria-label="Years until retirement slider">
                     <span class="numwrap"><input type="number" id="yearsNum" min="5" max="40" step="1" value="25"><span class="unit">yrs</span></span>
                 </div>
                 <p class="help">Retirement age is current age plus this many years.</p>
@@ -509,7 +510,6 @@
             <div class="input-group conditional-group adv-only" id="spouseAgeGroup" hidden>
                 <label for="spouseAgeN">Spouse age for IRS limits</label>
                 <div class="dual">
-                    <input type="range" id="spouseAgeR" min="18" max="100" step="1" value="40" aria-label="Spouse age slider">
                     <span class="numwrap"><input type="number" id="spouseAgeN" min="18" max="100" step="1" value="40"><span class="unit">yrs</span></span>
                 </div>
                 <p class="help">The spouse's age sets the spouse's own IRA limit and, for a working spouse, their own workplace plan limit. IRS limits are per person and cannot be transferred between spouses.</p>
@@ -518,7 +518,6 @@
             <div class="input-group adv-only">
                 <label for="planAgeN">Plan through age</label>
                 <div class="dual">
-                    <input type="range" id="planAgeR" min="75" max="105" step="1" value="95" aria-label="Plan through age slider">
                     <span class="numwrap"><input type="number" id="planAgeN" min="75" max="105" step="1" value="95"><span class="unit">yrs</span></span>
                 </div>
                 <p class="help">The age the plan must fund through. Longer is more conservative.</p>
@@ -537,7 +536,6 @@
             <div class="input-group">
                 <label for="currentBalance">Current portfolio value</label>
                 <div class="dual">
-                    <input type="range" id="balanceR" min="0" max="3000000" step="5000" value="528000" aria-label="Current portfolio slider">
                     <span class="numwrap"><span class="unit">$</span><input type="number" id="currentBalance" min="0" step="1000" value="528000"></span>
                 </div>
             </div>
@@ -545,7 +543,6 @@
             <div class="input-group">
                 <label for="annualContribution">Annual investment, first year</label>
                 <div class="dual">
-                    <input type="range" id="contribR" min="0" max="150000" step="50" value="30500" aria-label="Annual investment slider">
                     <span class="numwrap"><span class="unit">$</span><input type="number" id="annualContribution" min="0" step="500" value="30500"></span>
                 </div>
                 <p class="help" id="taxRoomLine">2026 tax-advantaged room at the ages entered: $32,000 ($24,500 workplace plan + $7,500 IRA). Amounts above that are planned as taxable brokerage.</p>
@@ -554,7 +551,6 @@
             <div class="input-group adv-only">
                 <label for="contribIncN">Annual contribution increase</label>
                 <div class="dual">
-                    <input type="range" id="contribIncR" min="0" max="10" step="0.25" value="0" aria-label="Contribution increase slider">
                     <span class="numwrap"><input type="number" id="contribIncN" min="0" max="10" step="0.25" value="0"><span class="unit">%/yr</span></span>
                 </div>
                 <p class="help">How much the annual investment grows each year, for example with raises. Zero keeps the original flat baseline.</p>
@@ -602,7 +598,6 @@
             <div class="input-group">
                 <label for="spendingN">Desired annual spending in retirement</label>
                 <div class="dual">
-                    <input type="range" id="spendingR" min="20000" max="250000" step="100" value="80000" aria-label="Annual spending slider">
                     <span class="numwrap"><span class="unit">$</span><input type="number" id="spendingN" min="0" step="100" value="80000"></span>
                 </div>
                 <p class="help">In today's dollars. The simulators raise it with inflation each year of retirement.</p>
@@ -611,7 +606,6 @@
             <div class="input-group">
                 <label for="ssN">Social Security at retirement, monthly</label>
                 <div class="dual">
-                    <input type="range" id="ssR" min="0" max="8000" step="50" value="2500" aria-label="Social Security slider">
                     <span class="numwrap"><span class="unit">$</span><input type="number" id="ssN" min="0" step="50" value="2500"></span>
                 </div>
                 <p class="help">In today's dollars, household total. Your estimate from ssa.gov works here.</p>
@@ -620,7 +614,6 @@
             <div class="input-group adv-only">
                 <label for="otherIncN">Other guaranteed income, monthly</label>
                 <div class="dual">
-                    <input type="range" id="otherIncR" min="0" max="15000" step="50" value="0" aria-label="Other guaranteed income slider">
                     <span class="numwrap"><span class="unit">$</span><input type="number" id="otherIncN" min="0" step="50" value="0"></span>
                 </div>
                 <p class="help">Pension, VA disability, annuity, or other income that does not depend on the portfolio, in today's dollars.</p>
@@ -629,19 +622,18 @@
             <div class="input-group adv-only">
                 <label for="wrN">Withdrawal rate for income estimates</label>
                 <div class="dual">
-                    <input type="range" id="wrR" min="2" max="8" step="0.1" value="4" aria-label="Withdrawal rate slider">
                     <span class="numwrap"><input type="number" id="wrN" min="2" max="8" step="0.1" value="4"><span class="unit">%</span></span>
                 </div>
                 <p class="help">Used for the target portfolio and the monthly income estimates. Higher means more income now and more risk later.</p>
             </div>
 
-            <div class="input-group adv-only">
+            <div class="input-group">
                 <label for="legacyN">Leave behind at the end</label>
                 <div class="dual">
-                    <input type="range" id="legacyR" min="0" max="2000000" step="10000" value="0" aria-label="Leave behind at the end slider">
                     <span class="numwrap"><span class="unit">$</span><input type="number" id="legacyN" min="0" step="1000" value="0"></span>
                 </div>
-                <p class="help">The amount you want still invested at your plan-through age, in today's dollars. Zero means plan to use the money during your life, not die with it. A cushion or an inheritance goes here.</p>
+                <p class="help adv-only">The amount you want still invested at your plan-through age, in today's dollars. Zero means plan to use the money during your life, not die with it. A cushion or an inheritance goes here.</p>
+                <p class="help simple-only">Your desired remainder at the end of the plan, what stays in the account at death, in today's dollars. Zero means plan to spend it down.</p>
             </div>
             </div>
         </div>
@@ -660,7 +652,6 @@
             <div class="input-group">
                 <label for="inflN">Inflation</label>
                 <div class="dual">
-                    <input type="range" id="inflR" min="0" max="8" step="0.1" value="2.5" aria-label="Inflation slider">
                     <span class="numwrap"><input type="number" id="inflN" min="0" max="8" step="0.1" value="2.5"><span class="unit">%</span></span>
                 </div>
             </div>
@@ -668,7 +659,6 @@
             <div class="input-group">
                 <label for="planRetN">Planning return (Monte Carlo and custom analysis)</label>
                 <div class="dual">
-                    <input type="range" id="planRetR" min="4" max="13" step="0.1" value="8" aria-label="Planning return slider">
                     <span class="numwrap"><input type="number" id="planRetN" min="4" max="13" step="0.1" value="8"><span class="unit">%</span></span>
                 </div>
             </div>
@@ -676,7 +666,6 @@
             <div class="input-group">
                 <label for="volN">Annual volatility (Monte Carlo)</label>
                 <div class="dual">
-                    <input type="range" id="volR" min="5" max="30" step="0.5" value="15" aria-label="Volatility slider">
                     <span class="numwrap"><input type="number" id="volN" min="5" max="30" step="0.5" value="15"><span class="unit">%</span></span>
                 </div>
                 <p class="help">How widely yearly returns swing around the planning return. Broad U.S. stock funds have historically been near 15 to 20 percent.</p>
@@ -685,7 +674,6 @@
             <div class="input-group">
                 <label for="dropN">Market drop at retirement</label>
                 <div class="dual">
-                    <input type="range" id="dropR" min="0" max="50" step="1" value="0" aria-label="Market drop slider">
                     <span class="numwrap"><input type="number" id="dropN" min="0" max="50" step="1" value="0"><span class="unit">%</span></span>
                 </div>
                 <p class="help">A one time hit to the portfolio in the first retirement year, for stress testing. Zero means no drop.</p>
@@ -694,7 +682,6 @@
             <div class="input-group">
                 <label for="targetN">Target portfolio at retirement</label>
                 <div class="dual">
-                    <input type="range" id="targetR" min="0" max="10000000" step="25000" value="1250000" aria-label="Target portfolio slider">
                     <span class="numwrap"><span class="unit">$</span><input type="number" id="targetN" min="0" step="5000" value="1250000" data-manual="0"></span>
                 </div>
                 <p class="help">Starts from your spending need: annual spending minus guaranteed income, divided by the withdrawal rate. Edit it and it stays yours.</p>
@@ -1078,7 +1065,7 @@
    RETIREMENT STRATEGY CENTER: MODEL
    Sections:
      1. MODEL CONSTANTS (edit rates and limits here)
-     2. State and input reading (dual slider + number controls)
+     2. State and input reading (number-entry controls)
      3. Accumulation engine (monthly contributions, monthly growth)
      4. Goal solver, Coast, and Financial Independence checks
      5. Retirement income and longevity simulator
@@ -1132,6 +1119,7 @@ const DEFAULTS = {
 
 const STATE = {
     theme: 'light',
+    affordableSpending: null, // spend-down solver result, stashed by renderSpendDown for the Simple view
     withdrawalRate: 0.04,
     mcRan: false,
     mcSuccessText: 'Not run yet',
@@ -1139,26 +1127,16 @@ const STATE = {
 };
 
 /* ---------- 2. State and inputs ---------- */
-// Every dual control: range element id, number element id.
-// The number input is authoritative; the slider mirrors it.
-const DUALS = [
-    { r: 'age', n: 'ageNum' },
-    { r: 'years', n: 'yearsNum' },
-    { r: 'spouseAgeR', n: 'spouseAgeN' },
-    { r: 'planAgeR', n: 'planAgeN' },
-    { r: 'balanceR', n: 'currentBalance' },
-    { r: 'contribR', n: 'annualContribution' },
-    { r: 'contribIncR', n: 'contribIncN' },
-    { r: 'spendingR', n: 'spendingN' },
-    { r: 'ssR', n: 'ssN' },
-    { r: 'otherIncR', n: 'otherIncN' },
-    { r: 'wrR', n: 'wrN' },
-    { r: 'legacyR', n: 'legacyN' },
-    { r: 'inflR', n: 'inflN' },
-    { r: 'planRetR', n: 'planRetN' },
-    { r: 'volR', n: 'volN' },
-    { r: 'dropR', n: 'dropN' },
-    { r: 'targetR', n: 'targetN' }
+// Number-entry controls (set 2026-11-07 at Brandon's direction):
+// the sliders are gone, and every setting is a plain number input.
+// Typing recalculates without rewriting the field mid-keystroke; on
+// commit (change or blur) the value is clamped to the field's own
+// min and max when present and written back clean.
+const NUMBER_INPUTS = [
+    'ageNum', 'yearsNum', 'spouseAgeN', 'planAgeN',
+    'currentBalance', 'annualContribution', 'contribIncN',
+    'spendingN', 'ssN', 'otherIncN', 'wrN', 'legacyN',
+    'inflN', 'planRetN', 'volN', 'dropN', 'targetN'
 ];
 
 function clampTo(el, v) {
@@ -1168,32 +1146,29 @@ function clampTo(el, v) {
     return v;
 }
 
-function bindDuals() {
-    DUALS.forEach(function (d) {
-        const range = document.getElementById(d.r);
-        const num = document.getElementById(d.n);
-        if (!range || !num) return;
-        range.addEventListener('input', function () {
-            num.value = range.value;
-            if (d.n === 'targetN') markTargetManual();
-            updateAll();
-        });
-        // Typing: accept any parseable value without rewriting the field
-        // mid-keystroke; mirror it to the slider (clamped) and recalculate.
+function bindNumbers() {
+    NUMBER_INPUTS.forEach(function (id) {
+        const num = document.getElementById(id);
+        if (!num) return;
         num.addEventListener('input', function () {
             const v = parseFloat(num.value);
             if (isNaN(v)) return;
-            range.value = clampTo(range, v);
-            if (d.n === 'targetN') markTargetManual();
+            num.dataset.committed = String(v);
+            if (id === 'targetN') markTargetManual();
             updateAll();
         });
-        // On commit (blur or Enter): clamp and write back a clean value.
+        // On commit: clamp to the field's own limits and write back a
+        // clean value. A field cleared mid-edit falls back to the last
+        // committed value rather than jumping to a limit.
         num.addEventListener('change', function () {
             let v = parseFloat(num.value);
-            if (isNaN(v)) v = parseFloat(range.value) || 0;
+            if (isNaN(v)) {
+                v = parseFloat(num.dataset.committed);
+                if (isNaN(v)) v = parseFloat(num.getAttribute('value')) || 0;
+            }
             v = clampTo(num, v);
             num.value = v;
-            range.value = clampTo(range, v);
+            num.dataset.committed = String(v);
             updateAll();
         });
     });
@@ -1228,41 +1203,45 @@ function announcePlan(message) {
     window.setTimeout(function () { live.textContent = message; }, 40);
 }
 
-function setDualValue(rangeId, numId, value) {
-    const range = document.getElementById(rangeId);
+// One setter for programmatic writes (defaults, restores, and the
+// solver action buttons). It writes the number input only; there
+// are no sliders left to mirror.
+function setNumberValue(numId, value) {
     const num = document.getElementById(numId);
-    if (num) num.value = value;
-    if (range) range.value = clampTo(range, value);
+    if (num) {
+        num.value = value;
+        num.dataset.committed = String(value);
+    }
 }
 
 function applyDefaults(scope) {
     if (scope === 'all' || scope === 'household') {
-        setDualValue('age', 'ageNum', DEFAULTS.age);
-        setDualValue('years', 'yearsNum', DEFAULTS.years);
+        setNumberValue('ageNum', DEFAULTS.age);
+        setNumberValue('yearsNum', DEFAULTS.years);
         document.getElementById('filingStatus').value = DEFAULTS.status;
-        setDualValue('spouseAgeR', 'spouseAgeN', DEFAULTS.spouseAge);
-        setDualValue('planAgeR', 'planAgeN', DEFAULTS.planAge);
+        setNumberValue('spouseAgeN', DEFAULTS.spouseAge);
+        setNumberValue('planAgeN', DEFAULTS.planAge);
     }
     if (scope === 'all' || scope === 'saving') {
-        setDualValue('balanceR', 'currentBalance', DEFAULTS.balance);
-        setDualValue('contribR', 'annualContribution', DEFAULTS.contribution);
-        setDualValue('contribIncR', 'contribIncN', DEFAULTS.contribInc);
+        setNumberValue('currentBalance', DEFAULTS.balance);
+        setNumberValue('annualContribution', DEFAULTS.contribution);
+        setNumberValue('contribIncN', DEFAULTS.contribInc);
         document.getElementById('payAmount').value = DEFAULTS.payAmount;
         document.getElementById('payPeriod').value = DEFAULTS.payPeriod;
         document.getElementById('payHours').value = DEFAULTS.payHours;
     }
     if (scope === 'all' || scope === 'spending') {
-        setDualValue('spendingR', 'spendingN', DEFAULTS.spending);
-        setDualValue('ssR', 'ssN', DEFAULTS.ssMonthly);
-        setDualValue('otherIncR', 'otherIncN', DEFAULTS.otherMonthly);
-        setDualValue('wrR', 'wrN', DEFAULTS.wr);
-        setDualValue('legacyR', 'legacyN', DEFAULTS.legacyGoal);
+        setNumberValue('spendingN', DEFAULTS.spending);
+        setNumberValue('ssN', DEFAULTS.ssMonthly);
+        setNumberValue('otherIncN', DEFAULTS.otherMonthly);
+        setNumberValue('wrN', DEFAULTS.wr);
+        setNumberValue('legacyN', DEFAULTS.legacyGoal);
     }
     if (scope === 'all' || scope === 'assumptions') {
-        setDualValue('inflR', 'inflN', DEFAULTS.inflation);
-        setDualValue('planRetR', 'planRetN', DEFAULTS.planReturn);
-        setDualValue('volR', 'volN', DEFAULTS.volatility);
-        setDualValue('dropR', 'dropN', DEFAULTS.drop);
+        setNumberValue('inflN', DEFAULTS.inflation);
+        setNumberValue('planRetN', DEFAULTS.planReturn);
+        setNumberValue('volN', DEFAULTS.volatility);
+        setNumberValue('dropN', DEFAULTS.drop);
         // Returning the target to derived mode lets updateAll rebuild it
         // from the spending settings that are current after the restore.
         document.getElementById('targetN').setAttribute('data-manual', DEFAULTS.targetManual ? '1' : '0');
@@ -1770,25 +1749,33 @@ function renderPayGuide(inp, required) {
     button.setAttribute('data-required', String(roundedRequired));
 }
 
-// One shared action behind both set-to-required buttons (the Advanced
-// Pay and target guide button and the Simple view's Use this amount
-// button). The amount is the goal solver result rounded to the nearest
-// $50, staged on the Advanced button by renderPayGuide each render.
-function applyRequiredAmount() {
-    const source = document.getElementById('setRequiredBtn');
-    const rounded = parseFloat(source ? source.getAttribute('data-required') : NaN);
+// One action behind both set-to-required buttons (the Advanced Pay
+// and target guide button and the Simple view's Use this amount
+// button). Each button carries its own staged amount in its
+// data-required attribute: the Advanced button stages the
+// target-based solver result (written by renderPayGuide), and the
+// Simple button stages the goal-aware result instead while a
+// leave-behind remainder is set (written by renderSimpleAnswers).
+// With nothing staged on the clicked button, the Advanced amount
+// is the fallback, which is the Simple view's $0-remainder behavior.
+function applyRequiredAmount(source) {
+    let rounded = source ? parseFloat(source.getAttribute('data-required')) : NaN;
+    if (isNaN(rounded)) {
+        const adv = document.getElementById('setRequiredBtn');
+        rounded = adv ? parseFloat(adv.getAttribute('data-required')) : NaN;
+    }
     if (isNaN(rounded) || rounded <= 0) return;
     disarmRestoreAll();
-    setDualValue('contribR', 'annualContribution', rounded);
+    setNumberValue('annualContribution', rounded);
     updateAll();
     announcePlan('Annual investment set to the required amount.');
 }
 
 function bindPayGuide() {
     const button = document.getElementById('setRequiredBtn');
-    if (button) button.addEventListener('click', applyRequiredAmount);
+    if (button) button.addEventListener('click', function () { applyRequiredAmount(button); });
     const simpleButton = document.getElementById('simpleUseAmountBtn');
-    if (simpleButton) simpleButton.addEventListener('click', applyRequiredAmount);
+    if (simpleButton) simpleButton.addEventListener('click', function () { applyRequiredAmount(simpleButton); });
 }
 
 
@@ -1829,20 +1816,51 @@ function renderSimpleAnswers(inp, required, fiAge, income, retireAge) {
             ' a year, so the spending-based portfolio target is $0.';
     }
 
-    // Card 2: the saving it takes, monthly first.
-    const roundedRequired = Math.round(required / 50) * 50;
+    // Card 2: the saving it takes, monthly first. With a leave-behind
+    // remainder set, the card switches to the goal-aware figure: the
+    // saving whose income plan funds the desired spending AND ends
+    // at the remainder. At a $0 remainder it keeps the target-based
+    // figure the Advanced Goal tools show, so the two views differ
+    // only when a remainder is actually set.
+    const goalAware = inp.legacyGoal > 0 ? solveContributionForGoal(inp) : null;
+    const effRequired = (inp.legacyGoal > 0 && goalAware !== null) ? goalAware : required;
+    const roundedRequired = Math.round(effRequired / 50) * 50;
     const pay = annualizedPay(inp);
-    if (inp.target <= 0) {
+    if (inp.legacyGoal > 0 && goalAware === null) {
+        saveValue.textContent = 'More than this tool can solve';
+        saveText.textContent = 'Even the largest saving this tool searches for cannot fund your spending and leave your ' +
+            formatMoneyFull(inp.legacyGoal) + ' remainder at the end.';
+        useBtn.disabled = true;
+        useBtn.textContent = 'Use this amount';
+        useBtn.removeAttribute('data-required');
+    } else if (inp.legacyGoal > 0 && goalAware <= 0) {
+        saveValue.textContent = 'No new saving required';
+        saveText.textContent = 'Your current balance is projected to fund your spending and leave your ' +
+            formatMoneyFull(inp.legacyGoal) + ' remainder at the end.';
+        useBtn.disabled = true;
+        useBtn.textContent = 'Use this amount';
+        useBtn.removeAttribute('data-required');
+    } else if (inp.legacyGoal > 0) {
+        saveValue.textContent = 'Save about ' + formatMoneyFull(goalAware / 12) + ' a month';
+        saveText.textContent = 'That is ' + formatMoneyFull(goalAware) + ' a year, enough to fund your spending and leave your ' +
+            formatMoneyFull(inp.legacyGoal) + ' remainder at the end.';
+        const alreadyGoal = Math.abs(inp.contribution - roundedRequired) <= 25;
+        useBtn.disabled = alreadyGoal;
+        useBtn.textContent = alreadyGoal ? 'Already using this amount' : 'Use this amount';
+        useBtn.setAttribute('data-required', String(roundedRequired));
+    } else if (inp.target <= 0) {
         saveValue.textContent = 'No new saving required';
         saveText.textContent = 'Your spending goal is covered by guaranteed income, so this target does not require portfolio saving.';
         useBtn.disabled = true;
         useBtn.textContent = 'Use this amount';
+        useBtn.removeAttribute('data-required');
     } else if (required <= 0) {
         saveValue.textContent = 'No new saving required';
         saveText.textContent = 'Your current balance of ' + formatMoneyFull(inp.balance) +
             ' is projected to pass your number on the Moderate path, before any new saving is counted.';
         useBtn.disabled = true;
         useBtn.textContent = 'Use this amount';
+        useBtn.removeAttribute('data-required');
     } else {
         saveValue.textContent = 'Save about ' + formatMoneyFull(required / 12) + ' a month';
         const diff = required - inp.contribution;
@@ -1854,13 +1872,18 @@ function renderSimpleAnswers(inp, required, fiAge, income, retireAge) {
         const already = Math.abs(inp.contribution - roundedRequired) <= 25;
         useBtn.disabled = already;
         useBtn.textContent = already ? 'Already using this amount' : 'Use this amount';
+        useBtn.removeAttribute('data-required');
     }
-    if (pay && required > 0) {
-        savePay.textContent = 'The target takes about ' + (Math.round((required / pay) * 1000) / 10).toFixed(1) +
+    if (inp.legacyGoal > 0 && goalAware === null) {
+        savePay.textContent = '';
+        savePay.style.display = 'none';
+    } else if (pay && effRequired > 0) {
+        savePay.textContent = (inp.legacyGoal > 0 ? 'That saving takes about ' : 'The target takes about ') +
+            (Math.round((effRequired / pay) * 1000) / 10).toFixed(1) +
             '% of your gross pay. You invest ' + (Math.round((inp.contribution / pay) * 1000) / 10).toFixed(1) + '% now.';
         savePay.style.display = '';
-    } else if (pay && inp.target > 0) {
-        savePay.textContent = 'The target takes 0.0% of your gross pay. You invest ' +
+    } else if (pay && (inp.target > 0 || inp.legacyGoal > 0)) {
+        savePay.textContent = (inp.legacyGoal > 0 ? 'That saving takes 0.0% of your gross pay. You invest ' : 'The target takes 0.0% of your gross pay. You invest ') +
             (Math.round((inp.contribution / pay) * 1000) / 10).toFixed(1) + '% now.';
         savePay.style.display = '';
     } else {
@@ -1887,7 +1910,8 @@ function renderSimpleAnswers(inp, required, fiAge, income, retireAge) {
 
     // Lasting line: how long the money lasts once retirement starts.
     // A funded plan also names its projected leftover in today's
-    // dollars, using the same inflation span as the Income section.
+    // dollars, using the same inflation span as the Income section,
+    // and with a remainder set it says how the leftover compares.
     let lastingText = 'At your planned retirement age of ' + retireAge +
         ', your money is projected to last through age ' + income.fundedThrough +
         ' on the ' + scenarioDisplayName(inp.scenario) + ' path';
@@ -1895,11 +1919,38 @@ function renderSimpleAnswers(inp, required, fiAge, income, retireAge) {
         const thruAge = Math.max(inp.planAge, retireAge);
         const leftoverToday = income.endBalance /
             Math.pow(1 + inp.inflation, inp.years + (thruAge - retireAge));
-        lastingText += ', with about ' + formatMoneyCompact(leftoverToday) + ' left over.';
+        lastingText += ', with about ' + formatMoneyCompact(leftoverToday) + ' left over';
+        if (inp.legacyGoal > 0) {
+            lastingText += leftoverToday >= inp.legacyGoal
+                ? ', above your ' + formatMoneyFull(inp.legacyGoal) + ' remainder goal.'
+                : ', short of your ' + formatMoneyFull(inp.legacyGoal) + ' remainder goal.';
+        } else {
+            lastingText += '.';
+        }
     } else {
         lastingText += '.';
     }
     lasting.textContent = lastingText;
+
+    // Spending guidance tied to the remainder: the solved spending
+    // from the Advanced Spend-down check, stashed on STATE during
+    // its render so the solver runs once per recalculation. Shown
+    // only when a remainder is set and the answer is meaningfully
+    // different from the planned spending.
+    const spendGuide = document.getElementById('simpleSpendGuide');
+    if (spendGuide) {
+        const solvedSpend = STATE.affordableSpending;
+        if (inp.legacyGoal > 0 && solvedSpend !== null && solvedSpend !== undefined &&
+            Math.abs(solvedSpend - inp.spending) >= 1000) {
+            spendGuide.textContent = 'Spending that lands on your remainder: about ' +
+                formatMoneyFull(Math.round(solvedSpend / 100) * 100) + ' a year. You planned ' +
+                formatMoneyFull(inp.spending) + '.';
+            spendGuide.style.display = '';
+        } else {
+            spendGuide.textContent = '';
+            spendGuide.style.display = 'none';
+        }
+    }
 }
 
 /* ---------- 5. Retirement income and longevity simulator ---------- */
@@ -2015,6 +2066,32 @@ function solveAffordableSpending(inp) {
     };
 }
 
+// Goal-aware saving solver for the Simple view: the first-year
+// annual contribution (growing at the contribution increase setting)
+// whose income plan, under the selected scenario, funds the desired
+// spending AND ends at the nominal leave-behind goal. Ending balance
+// rises monotonically with the contribution, so bisection over the
+// existing income simulator is stable. Returns 0 when the current
+// balance alone already ends at or above the goal, and null when
+// even the search cap falls short.
+function solveContributionForGoal(inp) {
+    const goalNominal = endingGoalNominal(inp);
+    const endAt = function (c) {
+        return incomeSimFor(inp, inp.scenario, { contribution: c }).endBalance;
+    };
+    if (endAt(0) >= goalNominal) return 0;
+    const cap = 20000000;
+    let lo = 0, hi = 100000;
+    while (endAt(hi) < goalNominal && hi < cap) hi = Math.min(cap, hi * 2);
+    if (endAt(hi) < goalNominal) return null;
+    for (let i = 0; i < 60; i++) {
+        const mid = (lo + hi) / 2;
+        if (endAt(mid) >= goalNominal) hi = mid;
+        else lo = mid;
+    }
+    return hi;
+}
+
 function renderSpendDown(inp, income) {
     const box = document.getElementById('spendDownBox');
     const button = document.getElementById('spendDownBtn');
@@ -2030,6 +2107,9 @@ function renderSpendDown(inp, income) {
         ? income.endBalance / Math.pow(1 + inp.inflation, inp.years + endElapsed)
         : 0;
     const solved = solveAffordableSpending(inp);
+    // Stash the solved spending for the Simple view's remainder
+    // guidance line, so the solver runs once per recalculation.
+    STATE.affordableSpending = solved.reachable ? solved.affordable : null;
     const roundedSpending = Math.round(solved.affordable / 100) * 100;
     let html = '';
 
@@ -2090,7 +2170,7 @@ function applyAffordableSpending() {
     const rounded = parseFloat(source ? source.getAttribute('data-affordable') : NaN);
     if (isNaN(rounded) || rounded < 0) return;
     disarmRestoreAll();
-    setDualValue('spendingR', 'spendingN', rounded);
+    setNumberValue('spendingN', rounded);
     updateAll();
     announcePlan('Desired spending set to the spend-down amount.');
 }
@@ -2144,9 +2224,8 @@ function updateAll() {
         const derived = derivedTarget(inp);
         inp.target = derived;
         const tN = document.getElementById('targetN');
-        const tR = document.getElementById('targetR');
         tN.value = derived;
-        tR.value = clampTo(tR, derived);
+        tN.dataset.committed = String(derived);
         document.getElementById('statTargetSub').textContent = 'From spending need';
     } else {
         document.getElementById('statTargetSub').textContent = 'Your custom target';
@@ -2733,7 +2812,7 @@ function downloadPage() {
 
 /* ---------- Init ---------- */
 function init() {
-    bindDuals();
+    bindNumbers();
     bindBeginnerControls();
     bindPayGuide();
     bindSpendDown();
@@ -2759,7 +2838,7 @@ function init() {
 }
 
 // Handles for external calculation checks and debugging
-window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC, workerPlanLimit: workerPlanLimit, iraLimit: iraLimit, calculateLimits: calculateLimits, routeAmount: routeAmount, annualizedPay: annualizedPay, payBreakdown: payBreakdown, endingGoalNominal: endingGoalNominal, solveAffordableSpending: solveAffordableSpending, incomeSimFor: incomeSimFor, setViewMode: setViewMode, getViewMode: function () { return viewMode; } };
+window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC, workerPlanLimit: workerPlanLimit, iraLimit: iraLimit, calculateLimits: calculateLimits, routeAmount: routeAmount, annualizedPay: annualizedPay, payBreakdown: payBreakdown, endingGoalNominal: endingGoalNominal, solveAffordableSpending: solveAffordableSpending, solveContributionForGoal: solveContributionForGoal, incomeSimFor: incomeSimFor, setViewMode: setViewMode, getViewMode: function () { return viewMode; } };
 
 init();
 </script>
