@@ -169,6 +169,12 @@
         .card-actions .advanced-summary { flex: 1 1 260px; min-width: 0; color: var(--text-muted); font-size: 0.86rem; line-height: 1.45; }
         .card-actions .spacer { flex: 1 1 auto; }
         .advanced-content[hidden] { display: none; }
+        .conditional-group[hidden] { display: none !important; }
+        .pay-guidance { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+        .pay-guidance h4 { font-size: 0.95rem; margin-bottom: 4px; }
+        .pay-guidance .input-group input[type="number"] { width: 100%; }
+        .guide-warning { color: var(--accent-orange); font-weight: 600; }
+        #limitsTable { min-width: 780px; }
         .visually-hidden {
             position: absolute !important; width: 1px !important; height: 1px !important;
             padding: 0 !important; margin: -1px !important; overflow: hidden !important;
@@ -400,7 +406,16 @@
                     <option value="mfj_single">Married (Single Earner)</option>
                     <option value="mfj_dual">Married (Dual Earner)</option>
                 </select>
-                <p class="help">Filing status changes the 401(k) and IRA room used in the contribution routing below.</p>
+                <p class="help">Filing status changes the workplace plan and IRA room used in the contribution routing below.</p>
+            </div>
+
+            <div class="input-group conditional-group" id="spouseAgeGroup" hidden>
+                <label for="spouseAgeN">Spouse age for IRS limits</label>
+                <div class="dual">
+                    <input type="range" id="spouseAgeR" min="18" max="100" step="1" value="40" aria-label="Spouse age slider">
+                    <span class="numwrap"><input type="number" id="spouseAgeN" min="18" max="100" step="1" value="40"><span class="unit">yrs</span></span>
+                </div>
+                <p class="help">The spouse's age sets the spouse's own IRA limit and, for a working spouse, their own workplace plan limit. IRS limits are per person and cannot be transferred between spouses.</p>
             </div>
 
             <div class="input-group">
@@ -433,9 +448,10 @@
             <div class="input-group">
                 <label for="annualContribution">Annual investment, first year</label>
                 <div class="dual">
-                    <input type="range" id="contribR" min="0" max="150000" step="500" value="30500" aria-label="Annual investment slider">
+                    <input type="range" id="contribR" min="0" max="150000" step="50" value="30500" aria-label="Annual investment slider">
                     <span class="numwrap"><span class="unit">$</span><input type="number" id="annualContribution" min="0" step="500" value="30500"></span>
                 </div>
+                <p class="help" id="taxRoomLine">2026 tax-advantaged room at the ages entered: $32,000 ($24,500 workplace plan + $7,500 IRA). Amounts above that are planned as taxable brokerage.</p>
             </div>
 
             <div class="input-group">
@@ -445,6 +461,29 @@
                     <span class="numwrap"><input type="number" id="contribIncN" min="0" max="10" step="0.25" value="0"><span class="unit">%/yr</span></span>
                 </div>
                 <p class="help">How much the annual investment grows each year, for example with raises. Zero keeps the original flat baseline.</p>
+            </div>
+
+            <div class="pay-guidance">
+                <h4>Pay guidance (optional)</h4>
+                <p class="help">Gross pay is before taxes and deductions. It only guides the savings rates in Outlook; it does not change the projection.</p>
+                <div class="input-group">
+                    <label for="payAmount">Gross pay amount</label>
+                    <span class="numwrap"><span class="unit">$</span><input type="number" id="payAmount" min="0" step="1" value="" placeholder="Optional"></span>
+                </div>
+                <div class="input-group">
+                    <label for="payPeriod">Pay period</label>
+                    <select id="payPeriod">
+                        <option value="hourly">Hourly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="annual" selected>Annual</option>
+                    </select>
+                </div>
+                <div class="input-group conditional-group" id="payHoursGroup" hidden>
+                    <label for="payHours">Hours per week</label>
+                    <input type="number" id="payHours" min="0" max="168" step="0.5" value="40">
+                    <p class="help">Hourly pay is annualized with 52 weeks: hourly amount times hours per week times 52.</p>
+                </div>
+                <p class="help">For two earners, entering combined annual pay gives the clearest household savings rate.</p>
             </div>
         </div>
 
@@ -557,7 +596,7 @@
         <div class="card span2">
             <div class="card-header">Where the annual investment goes</div>
             <div class="breakdown-box" id="contribBreakdown"></div>
-            <p class="card-note">Routing uses 2026 401(k) and IRA limits for your age and filing status: fill the 401(k) first, then IRAs, then taxable brokerage. Limits in the routing update as the plan ages into catch-up years; the box shows the first year.</p>
+            <p class="card-note">Routing uses the 2026 IRS limits for each person's age: fill workplace plan room first, then IRA room, then taxable brokerage. This household planning view assumes each person has access to a plan, enough compensation in their own name, and a plan that permits catch-ups. The box shows the first year; Details projects the limits by year.</p>
         </div>
     </div>
 </section>
@@ -658,6 +697,15 @@
                 </table>
             </div>
             <p class="card-note">Same saving plan, different steady returns. Small return differences compound into large outcome differences.</p>
+        </div>
+
+        <div class="card span2">
+            <div class="card-header">Pay and target guide</div>
+            <div class="breakdown-box" id="payGuideBox"></div>
+            <div style="margin-top:12px;">
+                <button class="btn primary" id="setRequiredBtn" type="button">Set annual investment to the required amount</button>
+            </div>
+            <p class="card-note">The required amount comes from the Goal tools solver under the Moderate path. Setting it changes only the annual investment in Step 2.</p>
         </div>
     </div>
 </section>
@@ -812,6 +860,7 @@
         <div class="tabs" role="tablist" aria-label="Detail views">
             <button type="button" role="tab" id="tabBtn-proj" aria-selected="true" aria-controls="tab-proj">Projection table</button>
             <button type="button" role="tab" id="tabBtn-cash" aria-selected="false" aria-controls="tab-cash">Retirement cash flow</button>
+            <button type="button" role="tab" id="tabBtn-limits" aria-selected="false" aria-controls="tab-limits">Contribution limits by year</button>
             <button type="button" role="tab" id="tabBtn-mile" aria-selected="false" aria-controls="tab-mile">Milestones</button>
             <button type="button" role="tab" id="tabBtn-method" aria-selected="false" aria-controls="tab-method">Assumptions and method</button>
         </div>
@@ -836,6 +885,16 @@
             </div>
         </div>
 
+        <div class="tab-panel" id="tab-limits" role="tabpanel" hidden>
+            <p class="table-explainer">Ages advance each projection year. Future-year rooms use the 2026 IRS limits held constant; future limits are not predicted or inflation adjusted in this tool. Annual investment follows the first-year amount and your contribution increase setting.</p>
+            <div class="table-container">
+                <table id="limitsTable">
+                    <thead><tr><th>Year</th><th>Your age</th><th>Spouse age</th><th>Annual investment</th><th>Workplace room</th><th>IRA room</th><th>Tax-advantaged total</th><th>Taxable amount</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="tab-panel" id="tab-mile" role="tabpanel" hidden>
             <div id="milestoneList" class="milestone-container"></div>
         </div>
@@ -847,6 +906,19 @@
                     <li>Conservative 7%, Moderate 10%, and Historical 12.9% are fixed annual return assumptions for the deterministic paths. The 12.9% figure is a historical scenario carried from earlier versions of this tool; it is not a prediction, and no one can promise VOO or VTI will earn it again.</li>
                     <li>The accumulation engine invests contributions monthly and compounds monthly at the scenario rate divided by 12, depositing each month's contribution before that month's growth, matching the original tool.</li>
                     <li>Annual contributions grow each year by your contribution increase setting (0% keeps the original flat pattern).</li>
+                </ul>
+                <h4>Contribution limits and routing</h4>
+                <ul>
+                    <li>For 2026, the employee elective deferral limit for a 401(k), 403(b), or governmental 457 plan is $24,500. The catch-up is $8,000 at age 50 or older, for a total of $32,500. At ages 60, 61, 62, and 63, the higher catch-up is $11,250, for a total of $35,750. At age 64, the limit returns to the age 50 catch-up level.</li>
+                    <li>For 2026, the IRA limit is $7,500, plus a $1,100 catch-up at age 50 or older, for a total of $8,600. IRA contributions cannot exceed taxable compensation for the year. Workplace elective deferrals are also compensation based, and an employer plan can impose a lower limit.</li>
+                    <li>Limits are per person. A married single-earner household has one workplace plan limit and two IRA limits, including a spousal IRA. A married dual-earner household has two workplace plan limits and two IRA limits. Each IRA and workplace limit uses that person's own age, including the spouse age entered in Step 1.</li>
+                    <li>The year-by-year limits table holds the 2026 limits constant for future years. It does not predict or inflation adjust future IRS limits.</li>
+                    <li>Not modeled: Roth IRA income eligibility, traditional IRA deduction phaseouts, the 403(b) 15-year catch-up, separate 457 plan details, SIMPLE plans, employer contributions, and the separate overall annual-additions limit. Employer contributions are not part of the annual investment input.</li>
+                </ul>
+                <h4>Salary guidance</h4>
+                <ul>
+                    <li>Pay is gross pay, before taxes and deductions. Hourly pay is annualized as hourly amount times hours per week times 52. Monthly pay is multiplied by 12. Annual pay is used as entered.</li>
+                    <li>Current and required savings rates divide annual saving by estimated gross annual pay. Pay is optional and does not change any projection, limit, or routing calculation.</li>
                 </ul>
                 <h4>Inflation and today's dollars</h4>
                 <ul>
@@ -894,7 +966,7 @@ const MODEL = {
     // Deterministic scenario annual returns (decimal)
     rates: { con: 0.07, mod: 0.10, hist: 0.129 },
     // 2026 contribution limits
-    limits: { base401k: 24500, catchUp401k: 7500, superCatchUp401k: 11250, baseIRA: 7500, catchUpIRA: 1000 },
+    limits: { base401k: 24500, catchUp401k: 8000, superCatchUp401k: 11250, baseIRA: 7500, catchUpIRA: 1100 },
     // Monte Carlo path count (1,000 stays responsive; lower it on slow devices)
     mcPaths: 1000,
     // Monte Carlo random seed: fixed so a given plan reproduces the same run
@@ -909,10 +981,14 @@ const DEFAULTS = {
     age: 40,
     years: 25,
     status: 'single',
+    spouseAge: 40,
     planAge: 95,
     balance: 528000,
     contribution: 30500,
     contribInc: 0,
+    payAmount: '',
+    payPeriod: 'annual',
+    payHours: 40,
     spending: 80000,
     ssMonthly: 2500,
     otherMonthly: 0,
@@ -939,6 +1015,7 @@ const STATE = {
 const DUALS = [
     { r: 'age', n: 'ageNum' },
     { r: 'years', n: 'yearsNum' },
+    { r: 'spouseAgeR', n: 'spouseAgeN' },
     { r: 'planAgeR', n: 'planAgeN' },
     { r: 'balanceR', n: 'currentBalance' },
     { r: 'contribR', n: 'annualContribution' },
@@ -991,6 +1068,11 @@ function bindDuals() {
         });
     });
     document.getElementById('filingStatus').addEventListener('change', updateAll);
+    document.getElementById('payAmount').addEventListener('input', updateAll);
+    document.getElementById('payAmount').addEventListener('change', updateAll);
+    document.getElementById('payPeriod').addEventListener('change', updateAll);
+    document.getElementById('payHours').addEventListener('input', updateAll);
+    document.getElementById('payHours').addEventListener('change', updateAll);
     document.getElementById('incomeScenario').addEventListener('change', updateAll);
     document.getElementById('targetReset').addEventListener('click', function () {
         document.getElementById('targetN').setAttribute('data-manual', '0');
@@ -1028,12 +1110,16 @@ function applyDefaults(scope) {
         setDualValue('age', 'ageNum', DEFAULTS.age);
         setDualValue('years', 'yearsNum', DEFAULTS.years);
         document.getElementById('filingStatus').value = DEFAULTS.status;
+        setDualValue('spouseAgeR', 'spouseAgeN', DEFAULTS.spouseAge);
         setDualValue('planAgeR', 'planAgeN', DEFAULTS.planAge);
     }
     if (scope === 'all' || scope === 'saving') {
         setDualValue('balanceR', 'currentBalance', DEFAULTS.balance);
         setDualValue('contribR', 'annualContribution', DEFAULTS.contribution);
         setDualValue('contribIncR', 'contribIncN', DEFAULTS.contribInc);
+        document.getElementById('payAmount').value = DEFAULTS.payAmount;
+        document.getElementById('payPeriod').value = DEFAULTS.payPeriod;
+        document.getElementById('payHours').value = DEFAULTS.payHours;
     }
     if (scope === 'all' || scope === 'spending') {
         setDualValue('spendingR', 'spendingN', DEFAULTS.spending);
@@ -1069,12 +1155,15 @@ function settingsDirty(inp) {
     // A manual target counts as custom only when its value differs from
     // the target the current spending settings would derive.
     const targetDirty = targetIsManual() ? !nearValue(inp.target, derived, 0.01) : false;
+    const spouseDirty = inp.status !== 'single' && !nearValue(inp.spouseAge, DEFAULTS.spouseAge);
+    const payDirty = inp.payAmountRaw !== DEFAULTS.payAmount || inp.payPeriod !== DEFAULTS.payPeriod ||
+        !nearValue(inp.payHours, DEFAULTS.payHours, 0.001);
     return {
         household: !nearValue(inp.age, DEFAULTS.age) || !nearValue(inp.years, DEFAULTS.years) ||
-            inp.status !== DEFAULTS.status || !nearValue(inp.planAge, DEFAULTS.planAge),
+            inp.status !== DEFAULTS.status || spouseDirty || !nearValue(inp.planAge, DEFAULTS.planAge),
         saving: !nearValue(inp.balance, DEFAULTS.balance, 0.01) ||
             !nearValue(inp.contribution, DEFAULTS.contribution, 0.01) ||
-            !nearValue(inp.contribInc, DEFAULTS.contribInc / 100, 0.00001),
+            !nearValue(inp.contribInc, DEFAULTS.contribInc / 100, 0.00001) || payDirty,
         spending: !nearValue(inp.spending, DEFAULTS.spending, 0.01) ||
             !nearValue(inp.ssMonthly, DEFAULTS.ssMonthly, 0.01) ||
             !nearValue(inp.otherMonthly, DEFAULTS.otherMonthly, 0.01) ||
@@ -1094,7 +1183,19 @@ function setBadge(id, dirty) {
     badge.classList.toggle('custom', !!dirty);
 }
 
+function syncConditionalFields(inp) {
+    // Conditional rows follow the controls that give them meaning. Hidden
+    // values stay in the form for state preservation, but calculations
+    // ignore spouse age while filing as Single and ignore hours per week
+    // unless the pay period is Hourly.
+    const spouseGroup = document.getElementById('spouseAgeGroup');
+    if (spouseGroup) spouseGroup.hidden = inp.status === 'single';
+    const hoursGroup = document.getElementById('payHoursGroup');
+    if (hoursGroup) hoursGroup.hidden = inp.payPeriod !== 'hourly';
+}
+
 function syncDefaultsUI(inp) {
+    syncConditionalFields(inp);
     const dirty = settingsDirty(inp);
     setBadge('householdBadge', dirty.household);
     setBadge('savingBadge', dirty.saving);
@@ -1220,14 +1321,21 @@ function numVal(id, fallback) {
 // Read every input once per recalculation. Percent controls are
 // stored in percent points in the fields (4 means 4 percent).
 function getInputs() {
+    const payAmountRaw = document.getElementById('payAmount').value.trim();
+    const payAmountParsed = payAmountRaw === '' ? NaN : parseFloat(payAmountRaw);
     return {
         age: Math.round(numVal('ageNum', 40)),
         years: Math.round(numVal('yearsNum', 25)),
         status: document.getElementById('filingStatus').value,
+        spouseAge: Math.round(numVal('spouseAgeN', DEFAULTS.spouseAge)),
         planAge: Math.round(numVal('planAgeN', 95)),
         balance: numVal('currentBalance', 0),
         contribution: numVal('annualContribution', 0),
         contribInc: numVal('contribIncN', 0) / 100,
+        payAmountRaw: payAmountRaw,
+        payAmount: isNaN(payAmountParsed) ? null : payAmountParsed,
+        payPeriod: document.getElementById('payPeriod').value,
+        payHours: numVal('payHours', DEFAULTS.payHours),
         spending: numVal('spendingN', 0),
         ssMonthly: numVal('ssN', 0),
         otherMonthly: numVal('otherIncN', 0),
@@ -1239,6 +1347,19 @@ function getInputs() {
         target: numVal('targetN', 0),
         scenario: document.getElementById('incomeScenario').value
     };
+}
+
+// Optional gross pay, annualized for savings-rate guidance only. Blank,
+// zero, and invalid amounts mean no pay was provided, so callers show a
+// prompt instead of dividing by zero.
+function annualizedPay(inp) {
+    if (inp.payAmount === null || inp.payAmount <= 0) return null;
+    if (inp.payPeriod === 'hourly') {
+        const hours = inp.payHours > 0 ? inp.payHours : DEFAULTS.payHours;
+        return inp.payAmount * hours * 52;
+    }
+    if (inp.payPeriod === 'monthly') return inp.payAmount * 12;
+    return inp.payAmount;
 }
 
 // Spending-based target: what the portfolio must cover after
@@ -1286,40 +1407,181 @@ function solveRequiredContribution(inp, target) {
     return hi;
 }
 
-/* ---------- Contribution limits (2026), by age and filing status ---------- */
-function calculateLimits(age, status) {
-    let max401k = MODEL.limits.base401k;
-    let maxIRA = MODEL.limits.baseIRA;
-    if (age >= 60 && age <= 63) max401k += MODEL.limits.superCatchUp401k;
-    else if (age >= 50) max401k += MODEL.limits.catchUp401k;
-    if (age >= 50) maxIRA += MODEL.limits.catchUpIRA;
-    if (status === 'mfj_single') {
-        maxIRA *= 2;
-    } else if (status === 'mfj_dual') {
-        max401k *= 2;
-        maxIRA *= 2;
-    }
-    return { max401k: max401k, maxIRA: maxIRA };
+/* ---------- Contribution limits (2026), per person by age ---------- */
+// IRS limits belong to a person, not to a household. These two helpers
+// are the only place the age bands are applied; household totals are
+// assembled below from the user's and spouse's own ages.
+function workerPlanLimit(age) {
+    if (age >= 60 && age <= 63) return MODEL.limits.base401k + MODEL.limits.superCatchUp401k;
+    if (age >= 50) return MODEL.limits.base401k + MODEL.limits.catchUp401k;
+    return MODEL.limits.base401k;
+}
+
+function iraLimit(age) {
+    return MODEL.limits.baseIRA + (age >= 50 ? MODEL.limits.catchUpIRA : 0);
+}
+
+// Household room by filing status:
+// - Single: one workplace plan and one IRA, both at the user's age.
+// - Married, single earner: one workplace plan at the earner's age, plus
+//   two IRAs, one at each spouse's age (the second is a spousal IRA).
+// - Married, dual earner: two workplace plans and two IRAs, each at the
+//   owner's own age.
+function calculateLimits(age, status, spouseAge) {
+    const spouse = (spouseAge === undefined || spouseAge === null) ? age : spouseAge;
+    const userWorkplace = workerPlanLimit(age);
+    const spouseWorkplace = status === 'mfj_dual' ? workerPlanLimit(spouse) : 0;
+    const userIRA = iraLimit(age);
+    const spouseIRA = status === 'single' ? 0 : iraLimit(spouse);
+    const workplace = userWorkplace + spouseWorkplace;
+    const ira = userIRA + spouseIRA;
+    return {
+        userWorkplace: userWorkplace,
+        spouseWorkplace: spouseWorkplace,
+        workplace: workplace,
+        userIRA: userIRA,
+        spouseIRA: spouseIRA,
+        ira: ira,
+        combined: workplace + ira,
+        // Compatibility aliases for older call sites and checks.
+        max401k: workplace,
+        maxIRA: ira
+    };
+}
+
+// Split one annual amount through the current household room, in the
+// page's fixed order: workplace plans, IRAs, then taxable brokerage.
+function routeAmount(amount, limits) {
+    const total = Math.max(0, amount || 0);
+    const workplace = Math.min(total, limits.workplace);
+    const ira = Math.min(total - workplace, limits.ira);
+    return { workplace: workplace, ira: ira, taxable: total - workplace - ira };
 }
 
 function renderBreakdown(inp) {
-    const limits = calculateLimits(inp.age, inp.status);
-    let remaining = inp.contribution;
-    const fill401k = Math.min(remaining, limits.max401k); remaining -= fill401k;
-    const fillIRA = Math.min(remaining, limits.maxIRA); remaining -= fillIRA;
-    const fillTaxable = remaining;
+    const limits = calculateLimits(inp.age, inp.status, inp.spouseAge);
+    const routed = routeAmount(inp.contribution, limits);
+    document.getElementById('taxRoomLine').textContent =
+        '2026 tax-advantaged room at the ages entered: ' + formatMoneyFull(limits.combined) +
+        ' (' + formatMoneyFull(limits.workplace) + ' workplace plan + ' + formatMoneyFull(limits.ira) +
+        ' IRA). Amounts above that are planned as taxable brokerage.';
     const total = inp.contribution || 1;
     const pct = function (x) { return inp.contribution > 0 ? Math.round((x / total) * 100) : 0; };
     const pieces = [];
-    if (fill401k > 0) pieces.push(pct(fill401k) + '% into 401(k)/403(b)');
-    if (fillIRA > 0) pieces.push(pct(fillIRA) + '% into IRAs (Roth/Trad)');
-    if (fillTaxable > 0) pieces.push(pct(fillTaxable) + '% into taxable brokerage');
+    if (routed.workplace > 0) pieces.push(pct(routed.workplace) + '% into workplace plans');
+    if (routed.ira > 0) pieces.push(pct(routed.ira) + '% into IRAs (Roth/Trad)');
+    if (routed.taxable > 0) pieces.push(pct(routed.taxable) + '% into taxable brokerage');
     document.getElementById('contribBreakdown').innerHTML =
-        '<div class="breakdown-row"><span class="bd-label"><span class="dot" style="background:var(--accent-green)"></span> 401(k) / 403(b)</span><span class="bd-val">$' + fill401k.toLocaleString() + '</span></div>' +
-        '<div class="breakdown-row"><span class="bd-label"><span class="dot" style="background:var(--accent-purple)"></span> IRA (Roth/Trad)</span><span class="bd-val">$' + fillIRA.toLocaleString() + '</span></div>' +
-        '<div class="breakdown-row"><span class="bd-label"><span class="dot" style="background:var(--accent-orange)"></span> Taxable Brokerage</span><span class="bd-val">$' + fillTaxable.toLocaleString() + '</span></div>' +
-        '<div class="breakdown-row"><span class="bd-label">Total Annual</span><span class="bd-val">$' + inp.contribution.toLocaleString() + '</span></div>' +
+        '<div class="breakdown-row"><span class="bd-label"><span class="dot" style="background:var(--accent-green)"></span> Workplace plans<span class="inc-cell">of ' + formatMoneyFull(limits.workplace) + ' room</span></span><span class="bd-val">' + formatMoneyFull(routed.workplace) + '</span></div>' +
+        '<div class="breakdown-row"><span class="bd-label"><span class="dot" style="background:var(--accent-purple)"></span> IRA (Roth/Trad)<span class="inc-cell">of ' + formatMoneyFull(limits.ira) + ' room</span></span><span class="bd-val">' + formatMoneyFull(routed.ira) + '</span></div>' +
+        '<div class="breakdown-row"><span class="bd-label"><span class="dot" style="background:var(--accent-orange)"></span> Taxable Brokerage<span class="inc-cell">after tax-advantaged room</span></span><span class="bd-val">' + formatMoneyFull(routed.taxable) + '</span></div>' +
+        '<div class="breakdown-row"><span class="bd-label">Combined tax-advantaged room<span class="inc-cell">' + formatMoneyFull(limits.workplace) + ' workplace + ' + formatMoneyFull(limits.ira) + ' IRA</span></span><span class="bd-val">' + formatMoneyFull(limits.combined) + '</span></div>' +
+        '<div class="breakdown-row"><span class="bd-label">Total Annual</span><span class="bd-val">' + formatMoneyFull(inp.contribution) + '</span></div>' +
         '<div class="breakdown-notes">Routing summary: ' + (pieces.length ? pieces.join(', ') : 'no contributions entered yet.') + '</div>';
+}
+
+function renderLimitsTable(inp) {
+    const tbody = document.querySelector('#limitsTable tbody');
+    if (!tbody) return;
+    const baseYear = new Date().getFullYear();
+    let html = '';
+    for (let y = 0; y < inp.years; y++) {
+        const yourAge = inp.age + y;
+        const spouseAge = inp.spouseAge + y;
+        const limits = calculateLimits(yourAge, inp.status, spouseAge);
+        const investment = inp.contribution * Math.pow(1 + inp.contribInc, y);
+        const routed = routeAmount(investment, limits);
+        html += '<tr><td><strong>' + (baseYear + y) + '</strong></td><td>' + yourAge + '</td><td>' +
+            (inp.status === 'single' ? 'N/A' : spouseAge) + '</td><td>' + formatMoneyFull(investment) + '</td><td>' +
+            formatMoneyFull(limits.workplace) + '</td><td>' + formatMoneyFull(limits.ira) + '</td><td>' +
+            formatMoneyFull(limits.combined) + '</td><td>' + formatMoneyFull(routed.taxable) + '</td></tr>';
+    }
+    tbody.innerHTML = html;
+}
+
+function formatRatePercent(amount, pay) {
+    if (!pay || pay <= 0) return null;
+    return (Math.round((amount / pay) * 1000) / 10).toFixed(1) + '%';
+}
+
+function renderPayGuide(inp, required) {
+    const box = document.getElementById('payGuideBox');
+    const button = document.getElementById('setRequiredBtn');
+    if (!box || !button) return;
+    const pay = annualizedPay(inp);
+    const limits = calculateLimits(inp.age, inp.status, inp.spouseAge);
+    const requiredRoute = routeAmount(required, limits);
+    const gap = required - inp.contribution;
+    const roundedRequired = Math.round(required / 50) * 50;
+    let html = '';
+
+    if (pay) {
+        const currentRate = formatRatePercent(inp.contribution, pay);
+        const requiredRate = formatRatePercent(required, pay);
+        const pointGap = Math.round(((required - inp.contribution) / pay) * 1000) / 10;
+        html += '<div class="breakdown-row"><span class="bd-label">Estimated gross annual pay</span><span class="bd-val">' + formatMoneyFull(pay) + '</span></div>';
+        html += '<div class="breakdown-row"><span class="bd-label">Current saving<span class="inc-cell">' + currentRate + ' of gross pay · ' + formatMoneyFull(inp.contribution / 12) + ' per month</span></span><span class="bd-val">' + formatMoneyFull(inp.contribution) + '/yr</span></div>';
+        html += '<div class="breakdown-row"><span class="bd-label">Required saving<span class="inc-cell">' + requiredRate + ' of gross pay · ' + formatMoneyFull(required / 12) + ' per month</span></span><span class="bd-val">' + formatMoneyFull(required) + '/yr</span></div>';
+        if (gap > 0) {
+            html += '<div class="breakdown-row"><span class="bd-label">Gap to target</span><span class="bd-val">' + formatMoneyFull(gap) + '/yr · ' + formatMoneyFull(gap / 12) + '/mo · ' + Math.abs(pointGap).toFixed(1) + ' points</span></div>';
+        } else if (gap < 0) {
+            html += '<div class="breakdown-row"><span class="bd-label">Cushion above required</span><span class="bd-val">' + formatMoneyFull(Math.abs(gap)) + '/yr · ' + formatMoneyFull(Math.abs(gap) / 12) + '/mo · ' + Math.abs(pointGap).toFixed(1) + ' points</span></div>';
+        } else {
+            html += '<div class="breakdown-row"><span class="bd-label">Gap to target</span><span class="bd-val">On pace</span></div>';
+        }
+        if (inp.contribution > pay) {
+            html += '<div class="breakdown-notes guide-warning">Current saving is larger than the gross pay entered. It cannot come from that pay alone and may involve other household income, existing savings, or employer contributions not entered.</div>';
+        }
+        if (required > pay) {
+            html += '<div class="breakdown-notes guide-warning">Required saving is larger than the gross pay entered. It cannot come from that pay alone and may involve other household income, existing savings, or employer contributions not entered.</div>';
+        }
+    } else {
+        html += '<div class="breakdown-row"><span class="bd-label">Estimated gross annual pay</span><span class="bd-val">Not entered</span></div>';
+        html += '<div class="breakdown-row"><span class="bd-label">Current saving<span class="inc-cell">' + formatMoneyFull(inp.contribution / 12) + ' per month</span></span><span class="bd-val">' + formatMoneyFull(inp.contribution) + '/yr</span></div>';
+        html += '<div class="breakdown-row"><span class="bd-label">Required saving<span class="inc-cell">' + formatMoneyFull(required / 12) + ' per month</span></span><span class="bd-val">' + formatMoneyFull(required) + '/yr</span></div>';
+        if (gap > 0) {
+            html += '<div class="breakdown-row"><span class="bd-label">Gap to target</span><span class="bd-val">' + formatMoneyFull(gap) + '/yr · ' + formatMoneyFull(gap / 12) + '/mo</span></div>';
+        } else if (gap < 0) {
+            html += '<div class="breakdown-row"><span class="bd-label">Cushion above required</span><span class="bd-val">' + formatMoneyFull(Math.abs(gap)) + '/yr · ' + formatMoneyFull(Math.abs(gap) / 12) + '/mo</span></div>';
+        } else {
+            html += '<div class="breakdown-row"><span class="bd-label">Gap to target</span><span class="bd-val">On pace</span></div>';
+        }
+        html += '<div class="breakdown-notes">Enter gross pay in Step 2 to see current and required savings rates.</div>';
+    }
+
+    if (required <= 0) {
+        html += '<div class="breakdown-notes">The target needs no new saving under the Moderate path, so there is nothing to set.</div>';
+    } else {
+        html += '<div class="breakdown-notes">Required amount at this year\'s ages: ' + formatMoneyFull(requiredRoute.workplace) +
+            ' fits in workplace plan room, ' + formatMoneyFull(requiredRoute.ira) + ' fits in IRA room, and ' +
+            formatMoneyFull(requiredRoute.taxable) + ' would need taxable brokerage.</div>';
+    }
+    box.innerHTML = html;
+
+    if (required <= 0) {
+        button.disabled = true;
+        button.textContent = 'No new saving required';
+    } else if (Math.abs(inp.contribution - roundedRequired) <= 25) {
+        button.disabled = true;
+        button.textContent = 'Annual investment already matches the required amount';
+    } else {
+        button.disabled = false;
+        button.textContent = 'Set annual investment to the required amount (' + formatMoneyFull(roundedRequired) + ')';
+    }
+    button.setAttribute('data-required', String(roundedRequired));
+}
+
+function bindPayGuide() {
+    const button = document.getElementById('setRequiredBtn');
+    if (!button) return;
+    button.addEventListener('click', function () {
+        const rounded = parseFloat(button.getAttribute('data-required'));
+        if (isNaN(rounded) || rounded <= 0) return;
+        disarmRestoreAll();
+        setDualValue('contribR', 'annualContribution', rounded);
+        updateAll();
+        announcePlan('Annual investment set to the required amount.');
+    });
 }
 
 /* ---------- 5. Retirement income and longevity simulator ---------- */
@@ -1487,6 +1749,7 @@ function updateAll() {
     document.getElementById('reqDiff').textContent = diffC > 0
         ? formatMoneyCompact(diffC) + ' more per year needed'
         : (diffC < 0 ? formatMoneyCompact(Math.abs(diffC)) + ' per year of cushion' : 'Exactly on pace');
+    renderPayGuide(inp, required);
 
     // Sensitivity strip
     let sensHtml = '';
@@ -1509,6 +1772,7 @@ function updateAll() {
     document.getElementById('incTotalNet').textContent = formatMoneyCompact(income.totalWithdrawn);
 
     renderBreakdown(inp);
+    renderLimitsTable(inp);
     renderWhatIf(inp, income);
     renderProjectionTable(inp, acc);
     renderCashTable(income);
@@ -1565,7 +1829,7 @@ function renderCashTable(income) {
 function renderMilestones(currentAge) {
     const container = document.getElementById('milestoneList');
     const events = [
-        { age: 50, title: 'Catch-Up Contributions', desc: '+$7.5k to 401k, +$1k to IRA.' },
+        { age: 50, title: 'Catch-Up Contributions', desc: '+$8,000 to a workplace plan, +$1,100 to an IRA.' },
         { age: 55, title: 'Rule of 55', desc: 'Penalty-free 401k withdrawals if separating from service.' },
         { age: 59, title: '59\u00BD Full Access', desc: 'Penalty-free withdrawals from all retirement accounts.' },
         { age: 60, title: 'Super Catch-Up (60 to 63)', desc: '401k catch-up increases to about $11,250.' },
@@ -1938,6 +2202,7 @@ function downloadPage() {
 function init() {
     bindDuals();
     bindBeginnerControls();
+    bindPayGuide();
     bindTabs();
     document.getElementById('mcRun').addEventListener('click', runMC);
     document.getElementById('mcPathsLabel').textContent = MODEL.mcPaths.toLocaleString();
@@ -1959,7 +2224,7 @@ function init() {
 }
 
 // Handles for external calculation checks and debugging
-window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC };
+window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC, workerPlanLimit: workerPlanLimit, iraLimit: iraLimit, calculateLimits: calculateLimits, routeAmount: routeAmount, annualizedPay: annualizedPay };
 
 init();
 </script>
