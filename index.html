@@ -187,6 +187,54 @@
             .card-actions .advanced-summary { flex-basis: 100%; }
         }
 
+        /* --- Simple / Advanced view modes ---
+           Visibility is driven by body[data-mode]. All hiding lives in
+           the screen media block, so printing still produces the full
+           report exactly as before. Simple-only elements are hidden by
+           default and shown only on screen in Simple mode. */
+        .simple-only { display: none !important; }
+        @media screen {
+            body[data-mode="simple"] .simple-only { display: block !important; }
+            body[data-mode="simple"] .adv-only { display: none !important; }
+        }
+        .mode-wrap { max-width: 1200px; margin: 0 auto 16px auto; }
+        .mode-label { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+        .mode-switch { display: flex; gap: 8px; flex-wrap: wrap; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 6px; }
+        .mode-btn {
+            flex: 1 1 220px; min-height: 56px; border-radius: 12px; cursor: pointer;
+            border: 1px solid transparent; background: transparent; color: var(--text-main);
+            padding: 10px 14px; text-align: left; transition: 0.2s;
+        }
+        .mode-btn strong { display: block; font-size: 1rem; }
+        .mode-btn span { display: block; color: var(--text-muted); font-size: 0.84rem; margin-top: 2px; }
+        .mode-btn:hover { background: var(--border); }
+        .mode-btn[aria-pressed="true"] { background: var(--primary); color: #fff; }
+        .mode-btn[aria-pressed="true"] span { color: inherit; opacity: 0.88; }
+        .mode-btn[aria-pressed="true"]:hover { background: var(--primary-hover); }
+        [data-theme="dark"] .mode-btn[aria-pressed="true"] { color: #14161c; }
+        .mode-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+        /* --- Simple view answers --- */
+        .answers-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        @media (min-width: 900px) { .answers-grid { grid-template-columns: repeat(3, 1fr); } }
+        .answer-card {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 18px;
+        }
+        .answer-card h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px; }
+        .answer-value { font-family: Georgia, 'Times New Roman', serif; font-size: 1.65rem; font-weight: 800; line-height: 1.15; margin-bottom: 8px; overflow-wrap: break-word; }
+        .answer-card p { color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; }
+        .answer-card .btn { margin-top: 12px; width: 100%; }
+        .lasting-line {
+            border: 1px solid var(--border); border-left: 4px solid var(--primary);
+            background: var(--card-bg); border-radius: 12px; padding: 14px 16px;
+            margin-top: 12px; font-weight: 700; line-height: 1.5;
+        }
+        .simple-note { color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin-top: 10px; }
+        @media screen and (min-width: 900px) {
+            body[data-mode="simple"] #spendingCard { grid-column: span 2; }
+        }
+
         /* --- Contribution routing breakdown --- */
         .breakdown-box { background: var(--milestone-bg); border-radius: 12px; padding: 12px; font-size: 0.85rem; border: 1px solid var(--border); }
         .breakdown-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
@@ -315,7 +363,7 @@
         .nb-footer .nb-footer-sub { margin-top: 6px; }
     </style>
 </head>
-<body>
+<body data-mode="simple">
 
 <header>
     <div class="header-content">
@@ -337,12 +385,56 @@
     <a href="#plan">Plan</a>
     <a href="#outlook">Outlook</a>
     <a href="#income">Income</a>
-    <a href="#risk">Risk Lab</a>
-    <a href="#strategy">Strategy</a>
-    <a href="#details">Details</a>
+    <a href="#risk" class="adv-only">Risk Lab</a>
+    <a href="#strategy" class="adv-only">Strategy</a>
+    <a href="#details" class="adv-only">Details</a>
 </nav>
+<!-- View mode switch: one shared set of inputs, two presentations.
+     Simple shows the answers and the few inputs that drive them;
+     Advanced shows every assumption, simulation, and table. -->
+<div class="mode-wrap no-print">
+    <div class="mode-label" id="viewModeLabel">Choose your view</div>
+    <div class="mode-switch" role="group" aria-labelledby="viewModeLabel">
+        <button type="button" class="mode-btn" id="modeSimpleBtn" aria-pressed="true"><strong>Simple</strong><span>Just the answers.</span></button>
+        <button type="button" class="mode-btn" id="modeAdvancedBtn" aria-pressed="false"><strong>Advanced</strong><span>Every assumption, simulation, and table.</span></button>
+    </div>
+</div>
 
 <main>
+<!-- ============================================================
+     YOUR ANSWERS (Simple view only)
+     Three plain answers computed from the same engine values the
+     Advanced view renders: the target portfolio, the goal solver's
+     required saving, and the Moderate path's reach age, plus the
+     income simulator's funded-through age.
+     ============================================================ -->
+<section id="answers" class="simple-only">
+    <h2 class="section-title">Your answers</h2>
+    <p class="section-sub">The three numbers most people come here for, from the figures in Plan below.</p>
+    <div class="answers-grid">
+        <div class="answer-card">
+            <h3>How much you need</h3>
+            <div class="answer-value" id="simpleTargetValue">$1,250,000</div>
+            <p id="simpleTargetText">Based on your desired yearly spending minus guaranteed income, at your chosen withdrawal rate.</p>
+        </div>
+        <div class="answer-card">
+            <h3>How much to save</h3>
+            <div class="answer-value" id="simpleSaveValue">No new saving required</div>
+            <p id="simpleSaveText">Checking your current pace against your number.</p>
+            <p id="simpleSavePay"></p>
+            <button class="btn primary" id="simpleUseAmountBtn" type="button">Use this amount</button>
+        </div>
+        <div class="answer-card">
+            <h3>When you reach it</h3>
+            <div class="answer-value" id="simpleFiValue">Age 65</div>
+            <p id="simpleFiText">Checking when your current pace reaches your number.</p>
+        </div>
+    </div>
+    <div class="lasting-line" id="simpleLasting">At your planned retirement age, your money is projected to last through your plan-through age.</div>
+    <p class="simple-note">These answers use the Moderate return path and the standard assumptions. Advanced lets you test other returns, inflation, market drops, and risk.</p>
+    <p class="simple-note">The investing approach behind this page is one core fund, VOO or VTI, held steadily. The full reasoning lives in Advanced, under Strategy.</p>
+</section>
+
 <!-- ============================================================
      SECTION 1: PLAN
      Every slider is paired with an editable number input.
@@ -350,9 +442,10 @@
      ============================================================ -->
 <section id="plan">
     <h2 class="section-title">Plan</h2>
-    <p class="section-sub">Start with the household facts. You can stop after the first two cards and still get a complete result from Outlook and Income. Every slider has a number box beside it: drag, type, or step, whichever you prefer.</p>
+    <p class="section-sub adv-only">Start with the household facts. You can stop after the first two cards and still get a complete result from Outlook and Income. Every slider has a number box beside it: drag, type, or step, whichever you prefer.</p>
+    <p class="section-sub simple-only">Your numbers. Four quick things, and everything else is set for you.</p>
 
-    <div class="card guide-card no-print" id="guideCard">
+    <div class="card guide-card no-print adv-only" id="guideCard">
         <div class="guide-layout">
             <div class="guide-copy">
                 <div class="guide-kicker">Guided start</div>
@@ -376,7 +469,7 @@
         <div class="card" id="householdCard">
             <div class="card-header">Step 1: Household and timing</div>
             <p class="card-subtitle">The household basics: where the plan starts, when retirement begins, and how long it must last.</p>
-            <div class="card-actions">
+            <div class="card-actions adv-only">
                 <span class="badge" id="householdBadge">Defaults set</span>
                 <span class="spacer"></span>
                 <button class="btn small card-reset" id="resetHouseholdBtn" type="button" disabled>Restore card defaults</button>
@@ -399,7 +492,7 @@
                 <p class="help">Retirement age is current age plus this many years.</p>
             </div>
 
-            <div class="input-group">
+            <div class="input-group adv-only">
                 <label for="filingStatus">Filing status</label>
                 <select id="filingStatus">
                     <option value="single">Single</option>
@@ -409,7 +502,7 @@
                 <p class="help">Filing status changes the workplace plan and IRA room used in the contribution routing below.</p>
             </div>
 
-            <div class="input-group conditional-group" id="spouseAgeGroup" hidden>
+            <div class="input-group conditional-group adv-only" id="spouseAgeGroup" hidden>
                 <label for="spouseAgeN">Spouse age for IRS limits</label>
                 <div class="dual">
                     <input type="range" id="spouseAgeR" min="18" max="100" step="1" value="40" aria-label="Spouse age slider">
@@ -418,7 +511,7 @@
                 <p class="help">The spouse's age sets the spouse's own IRA limit and, for a working spouse, their own workplace plan limit. IRS limits are per person and cannot be transferred between spouses.</p>
             </div>
 
-            <div class="input-group">
+            <div class="input-group adv-only">
                 <label for="planAgeN">Plan through age</label>
                 <div class="dual">
                     <input type="range" id="planAgeR" min="75" max="105" step="1" value="95" aria-label="Plan through age slider">
@@ -431,7 +524,7 @@
         <div class="card" id="savingCard">
             <div class="card-header">Step 2: Saving and investing</div>
             <p class="card-subtitle">What is already invested and how much new money goes in each year.</p>
-            <div class="card-actions">
+            <div class="card-actions adv-only">
                 <span class="badge" id="savingBadge">Defaults set</span>
                 <span class="spacer"></span>
                 <button class="btn small card-reset" id="resetSavingBtn" type="button" disabled>Restore card defaults</button>
@@ -454,7 +547,7 @@
                 <p class="help" id="taxRoomLine">2026 tax-advantaged room at the ages entered: $32,000 ($24,500 workplace plan + $7,500 IRA). Amounts above that are planned as taxable brokerage.</p>
             </div>
 
-            <div class="input-group">
+            <div class="input-group adv-only">
                 <label for="contribIncN">Annual contribution increase</label>
                 <div class="dual">
                     <input type="range" id="contribIncR" min="0" max="10" step="0.25" value="0" aria-label="Contribution increase slider">
@@ -489,8 +582,9 @@
 
         <div class="card" id="spendingCard">
             <div class="card-header">Retirement spending and income</div>
-            <p class="card-subtitle">Advanced settings. The defaults below drive the plan until you choose to change them.</p>
-            <div class="card-actions advanced-actions">
+            <p class="card-subtitle adv-only">Advanced settings. The defaults below drive the plan until you choose to change them.</p>
+            <p class="card-subtitle simple-only">What retirement should cost each year, and what Social Security covers each month.</p>
+            <div class="card-actions advanced-actions adv-only">
                 <span class="badge" id="spendingBadge">Defaults set</span>
                 <span class="advanced-summary" id="spendingSummary">$80,000/yr spending · $2,500/mo Social Security · $0/mo other income · 4% withdrawal rate</span>
                 <button class="btn small" id="spendingToggle" type="button" aria-expanded="false" aria-controls="spendingBody">Customize</button>
@@ -516,7 +610,7 @@
                 <p class="help">In today's dollars, household total. Your estimate from ssa.gov works here.</p>
             </div>
 
-            <div class="input-group">
+            <div class="input-group adv-only">
                 <label for="otherIncN">Other guaranteed income, monthly</label>
                 <div class="dual">
                     <input type="range" id="otherIncR" min="0" max="15000" step="50" value="0" aria-label="Other guaranteed income slider">
@@ -525,7 +619,7 @@
                 <p class="help">Pension, VA disability, annuity, or other income that does not depend on the portfolio, in today's dollars.</p>
             </div>
 
-            <div class="input-group">
+            <div class="input-group adv-only">
                 <label for="wrN">Withdrawal rate for income estimates</label>
                 <div class="dual">
                     <input type="range" id="wrR" min="2" max="8" step="0.1" value="4" aria-label="Withdrawal rate slider">
@@ -536,10 +630,10 @@
             </div>
         </div>
 
-        <div class="card" id="assumptionsCard">
+        <div class="card adv-only" id="assumptionsCard">
             <div class="card-header">Assumptions and risk</div>
             <p class="card-subtitle">Advanced settings. The defaults below drive the risk results until you choose to change them.</p>
-            <div class="card-actions advanced-actions">
+            <div class="card-actions advanced-actions adv-only">
                 <span class="badge" id="assumptionsBadge">Defaults set</span>
                 <span class="advanced-summary" id="assumptionsSummary">2.5% inflation · 8% planning return · 15% volatility · 0% retirement drop · $1,250,000 target</span>
                 <button class="btn small" id="assumptionsToggle" type="button" aria-expanded="false" aria-controls="assumptionsBody">Customize</button>
@@ -593,7 +687,7 @@
             </div>
         </div>
 
-        <div class="card span2">
+        <div class="card span2 adv-only">
             <div class="card-header">Where the annual investment goes</div>
             <div class="breakdown-box" id="contribBreakdown"></div>
             <p class="card-note">Routing uses the 2026 IRS limits for each person's age: fill workplace plan room first, then IRA room, then taxable brokerage. This household planning view assumes each person has access to a plan, enough compensation in their own name, and a plan that permits catch-ups. The box shows the first year; Details projects the limits by year.</p>
@@ -659,7 +753,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card adv-only">
         <div class="card-header">
             Growth projection
             <div style="font-size: 0.75rem; font-weight: 500; display: flex; gap: 10px; flex-wrap: wrap;">
@@ -674,7 +768,7 @@
         </div>
     </div>
 
-    <div class="plan-grid">
+    <div class="plan-grid adv-only">
         <div class="card">
             <div class="card-header">Goal tools</div>
             <div class="breakdown-box">
@@ -721,7 +815,7 @@
 
     <div class="card">
         <div class="card-header">Income and longevity simulator</div>
-        <div class="input-group" style="max-width:420px;">
+        <div class="input-group adv-only" style="max-width:420px;">
             <label for="incomeScenario">Retirement scenario</label>
             <select id="incomeScenario">
                 <option value="con">Conservative (7%)</option>
@@ -759,10 +853,11 @@
             </div>
         </div>
 
-        <div class="chart-wrapper">
+        <div class="chart-wrapper adv-only">
             <svg id="incomeChart" preserveAspectRatio="none" role="img" aria-label="Portfolio balance by age in retirement"></svg>
         </div>
-        <p class="card-note">Timing, stated plainly: each year the net need (spending minus guaranteed income) leaves the portfolio at the start of the year, then what remains grows for the year. If guaranteed income beats spending, the surplus is added to the portfolio instead. The market drop setting, when above zero, lands once before the first retirement year. Full year by year numbers are under Details.</p>
+        <p class="card-note simple-only">This follows your money year by year after retirement, using your spending and Social Security.</p>
+        <p class="card-note adv-only">Timing, stated plainly: each year the net need (spending minus guaranteed income) leaves the portfolio at the start of the year, then what remains grows for the year. If guaranteed income beats spending, the surplus is added to the portfolio instead. The market drop setting, when above zero, lands once before the first retirement year. Full year by year numbers are under Details.</p>
     </div>
 </section>
 
@@ -770,7 +865,7 @@
      SECTION 4: RISK LAB
      Monte Carlo plus deterministic what-if comparisons.
      ============================================================ -->
-<section id="risk">
+<section id="risk" class="adv-only">
     <h2 class="section-title">Risk Lab</h2>
     <p class="section-sub">Deterministic paths are tidy. Real markets are not. Stress the plan here.</p>
 
@@ -821,7 +916,7 @@
      The VOO versus VTI conclusion, condensed. The tools above
      are the focus now; this section states the strategy plainly.
      ============================================================ -->
-<section id="strategy">
+<section id="strategy" class="adv-only">
     <h2 class="section-title">Strategy</h2>
     <p class="section-sub">The fund decision behind every simulation on this page.</p>
 
@@ -852,7 +947,7 @@
      SECTION 6: DETAILS
      Year by year tables, milestones, and the method notes.
      ============================================================ -->
-<section id="details">
+<section id="details" class="adv-only">
     <h2 class="section-title">Details</h2>
     <p class="section-sub">The numbers behind the charts, and exactly how this page calculates.</p>
 
@@ -1571,17 +1666,123 @@ function renderPayGuide(inp, required) {
     button.setAttribute('data-required', String(roundedRequired));
 }
 
+// One shared action behind both set-to-required buttons (the Advanced
+// Pay and target guide button and the Simple view's Use this amount
+// button). The amount is the goal solver result rounded to the nearest
+// $50, staged on the Advanced button by renderPayGuide each render.
+function applyRequiredAmount() {
+    const source = document.getElementById('setRequiredBtn');
+    const rounded = parseFloat(source ? source.getAttribute('data-required') : NaN);
+    if (isNaN(rounded) || rounded <= 0) return;
+    disarmRestoreAll();
+    setDualValue('contribR', 'annualContribution', rounded);
+    updateAll();
+    announcePlan('Annual investment set to the required amount.');
+}
+
 function bindPayGuide() {
     const button = document.getElementById('setRequiredBtn');
-    if (!button) return;
-    button.addEventListener('click', function () {
-        const rounded = parseFloat(button.getAttribute('data-required'));
-        if (isNaN(rounded) || rounded <= 0) return;
-        disarmRestoreAll();
-        setDualValue('contribR', 'annualContribution', rounded);
-        updateAll();
-        announcePlan('Annual investment set to the required amount.');
-    });
+    if (button) button.addEventListener('click', applyRequiredAmount);
+    const simpleButton = document.getElementById('simpleUseAmountBtn');
+    if (simpleButton) simpleButton.addEventListener('click', applyRequiredAmount);
+}
+
+
+/* ---------- Simple view answers ----------
+   Renders the three Your answers cards from the same values updateAll
+   already computed for the Advanced view: the target portfolio, the
+   goal solver's required saving, the Moderate path's reach age, and
+   the income simulator result. No math is forked here; this function
+   only translates those values into plain words. */
+function scenarioDisplayName(key) {
+    return { con: 'Conservative', mod: 'Moderate', hist: 'Historical' }[key] || 'Moderate';
+}
+
+function renderSimpleAnswers(inp, required, fiAge, income, retireAge) {
+    const targetValue = document.getElementById('simpleTargetValue');
+    if (!targetValue) return;
+    const targetText = document.getElementById('simpleTargetText');
+    const saveValue = document.getElementById('simpleSaveValue');
+    const saveText = document.getElementById('simpleSaveText');
+    const savePay = document.getElementById('simpleSavePay');
+    const useBtn = document.getElementById('simpleUseAmountBtn');
+    const fiValue = document.getElementById('simpleFiValue');
+    const fiText = document.getElementById('simpleFiText');
+    const lasting = document.getElementById('simpleLasting');
+    const guaranteedAnnual = (inp.ssMonthly + inp.otherMonthly) * 12;
+
+    // Card 1: the number to have invested by retirement.
+    if (inp.target > 0) {
+        targetValue.textContent = formatMoneyFull(inp.target);
+        targetText.textContent = targetIsManual()
+            ? 'You need about this much invested by retirement. This is the target portfolio you set in Advanced.'
+            : 'You need about this much invested by retirement. It comes from desired yearly spending of ' +
+              formatMoneyFull(inp.spending) + ' minus guaranteed income of ' + formatMoneyFull(guaranteedAnnual) +
+              ' a year, at your ' + formatPercentPoints(inp.wr) + '% withdrawal rate.';
+    } else {
+        targetValue.textContent = 'Covered by guaranteed income';
+        targetText.textContent = 'Your guaranteed income covers your spending goal of ' + formatMoneyFull(inp.spending) +
+            ' a year, so the spending-based portfolio target is $0.';
+    }
+
+    // Card 2: the saving it takes, monthly first.
+    const roundedRequired = Math.round(required / 50) * 50;
+    const pay = annualizedPay(inp);
+    if (inp.target <= 0) {
+        saveValue.textContent = 'No new saving required';
+        saveText.textContent = 'Your spending goal is covered by guaranteed income, so this target does not require portfolio saving.';
+        useBtn.disabled = true;
+        useBtn.textContent = 'Use this amount';
+    } else if (required <= 0) {
+        saveValue.textContent = 'No new saving required';
+        saveText.textContent = 'Your current balance of ' + formatMoneyFull(inp.balance) +
+            ' is projected to pass your number on the Moderate path, before any new saving is counted.';
+        useBtn.disabled = true;
+        useBtn.textContent = 'Use this amount';
+    } else {
+        saveValue.textContent = 'Save about ' + formatMoneyFull(required / 12) + ' a month';
+        const diff = required - inp.contribution;
+        let pace = '';
+        if (diff > 0) pace = 'That is ' + formatMoneyFull(diff) + ' a year more than you save now.';
+        else if (diff < 0) pace = 'You already save ' + formatMoneyFull(Math.abs(diff)) + ' a year more than that.';
+        else pace = 'That matches what you save now.';
+        saveText.textContent = 'That is ' + formatMoneyFull(required) + ' a year. ' + pace;
+        const already = Math.abs(inp.contribution - roundedRequired) <= 25;
+        useBtn.disabled = already;
+        useBtn.textContent = already ? 'Already using this amount' : 'Use this amount';
+    }
+    if (pay && required > 0) {
+        savePay.textContent = 'That is about ' + (Math.round((required / pay) * 1000) / 10).toFixed(1) + '% of your gross pay.';
+        savePay.style.display = '';
+    } else if (pay && inp.target > 0) {
+        savePay.textContent = 'That is 0% of your gross pay.';
+        savePay.style.display = '';
+    } else {
+        savePay.textContent = '';
+        savePay.style.display = 'none';
+    }
+
+    // Card 3: when the current pace reaches the number.
+    if (inp.target <= 0) {
+        fiValue.textContent = 'No portfolio target to reach';
+        fiText.textContent = 'Guaranteed income covers the spending goal, so there is no portfolio number to chase.';
+    } else if (inp.balance >= inp.target) {
+        fiValue.textContent = 'Already reached';
+        fiText.textContent = 'Your current balance already meets your number of ' + formatMoneyFull(inp.target) + '.';
+    } else if (fiAge !== null) {
+        fiValue.textContent = 'Age ' + fiAge;
+        fiText.textContent = fiAge < retireAge
+            ? 'At your current pace, you could reach your number at age ' + fiAge + ', before your planned retirement age of ' + retireAge + '.'
+            : 'At your current pace, you reach your number right at your planned retirement age of ' + retireAge + '.';
+    } else {
+        fiValue.textContent = 'Not by age ' + retireAge;
+        fiText.textContent = 'At your current pace, you do not reach your number by your planned retirement age. Saving the amount in the middle card is the fix.';
+    }
+
+    // Lasting line: how long the money lasts once retirement starts.
+    lasting.textContent = 'At your planned retirement age of ' + retireAge +
+        ', your money is projected to last through age ' + income.fundedThrough +
+        ' on the ' + scenarioDisplayName(inp.scenario) + ' path.';
 }
 
 /* ---------- 5. Retirement income and longevity simulator ---------- */
@@ -1731,12 +1932,13 @@ function updateAll() {
     const wrPct = (inp.wr * 100).toFixed(1).replace(/\.0$/, '');
     document.getElementById('swrLabel').textContent = wrPct + '%';
 
-    // Goal tools
-    let fiText = 'Not in horizon';
+    // Goal tools. The reach age is kept numeric because the Simple
+    // view's third answer card phrases the same value in plain words.
+    let fiAge = null;
     for (let i = 0; i < acc.mod.points.length; i++) {
-        if (acc.mod.points[i].balance >= inp.target && inp.target > 0) { fiText = 'Age ' + (inp.age + acc.mod.points[i].offset); break; }
+        if (acc.mod.points[i].balance >= inp.target && inp.target > 0) { fiAge = inp.age + acc.mod.points[i].offset; break; }
     }
-    document.getElementById('fiAge').textContent = fiText;
+    document.getElementById('fiAge').textContent = fiAge === null ? 'Not in horizon' : 'Age ' + fiAge;
     const coast = inp.target / Math.pow(1 + MODEL.rates.mod / 12, 12 * inp.years);
     document.getElementById('coastNeed').textContent = formatMoneyFull(coast);
     document.getElementById('coastStatus').textContent = inp.balance >= coast
@@ -1782,6 +1984,7 @@ function updateAll() {
     renderChart(acc, inp);
     renderIncomeChart(income, inp);
     syncDefaultsUI(inp);
+    renderSimpleAnswers(inp, required, fiAge, income, retireAge);
 
     if (STATE.mcRan) {
         document.getElementById('mcStatus').textContent = 'Inputs changed since the last run. Run again for updated results.';
@@ -2088,6 +2291,65 @@ function renderMCChart(band) {
     svg.appendChild(createSVG('path', { d: medPath, 'class': 'line-med' }));
 }
 
+
+/* ---------- Simple / Advanced view mode ----------
+   One page, one shared set of inputs. The mode only changes what is
+   visible (through body[data-mode] and the screen CSS rules); it never
+   reads, writes, or resets a control value. Entering Simple expands
+   the spending card so its two Simple inputs are usable, after saving
+   the Advanced disclosure state; entering Advanced restores it. */
+let viewMode = 'simple';
+let savedDisclosure = null;
+
+function syncModeButtons() {
+    const simpleBtn = document.getElementById('modeSimpleBtn');
+    const advancedBtn = document.getElementById('modeAdvancedBtn');
+    if (simpleBtn) simpleBtn.setAttribute('aria-pressed', viewMode === 'simple' ? 'true' : 'false');
+    if (advancedBtn) advancedBtn.setAttribute('aria-pressed', viewMode === 'advanced' ? 'true' : 'false');
+}
+
+function setViewMode(mode) {
+    const next = mode === 'advanced' ? 'advanced' : 'simple';
+    if (next === viewMode) { syncModeButtons(); return; }
+    if (next === 'simple') {
+        savedDisclosure = { spending: advancedIsExpanded('spending'), assumptions: advancedIsExpanded('assumptions') };
+        viewMode = 'simple';
+        document.body.setAttribute('data-mode', 'simple');
+        syncModeButtons();
+        setAdvancedExpanded('spending', true);
+    } else {
+        viewMode = 'advanced';
+        document.body.setAttribute('data-mode', 'advanced');
+        syncModeButtons();
+        if (savedDisclosure) {
+            setAdvancedExpanded('spending', savedDisclosure.spending);
+            setAdvancedExpanded('assumptions', savedDisclosure.assumptions);
+            savedDisclosure = null;
+        }
+        // Charts inside sections that were hidden in Simple mode have no
+        // width there and skip rendering; redraw them from stored state.
+        window.setTimeout(function () {
+            if (STATE.last) { renderChart(STATE.last.acc, STATE.last.inp); renderIncomeChart(STATE.last.income, STATE.last.inp); }
+            if (STATE.mcBand) renderMCChart(STATE.mcBand);
+        }, 30);
+    }
+}
+
+function bindViewMode() {
+    const simpleBtn = document.getElementById('modeSimpleBtn');
+    const advancedBtn = document.getElementById('modeAdvancedBtn');
+    if (simpleBtn) simpleBtn.addEventListener('click', function () { setViewMode('simple'); });
+    if (advancedBtn) advancedBtn.addEventListener('click', function () { setViewMode('advanced'); });
+    // Honor the mode the page was saved or shipped in. A downloaded
+    // copy carries its mode on the body element.
+    viewMode = document.body.getAttribute('data-mode') === 'advanced' ? 'advanced' : 'simple';
+    syncModeButtons();
+    if (viewMode === 'simple') {
+        savedDisclosure = { spending: advancedIsExpanded('spending'), assumptions: advancedIsExpanded('assumptions') };
+        setAdvancedExpanded('spending', true);
+    }
+}
+
 /* ---------- Tabs ---------- */
 function bindTabs() {
     const buttons = document.querySelectorAll('.tabs button[role="tab"]');
@@ -2147,19 +2409,31 @@ function downloadPage() {
     });
     // Advanced-card disclosure state: hidden bodies, toggle labels, and
     // aria-expanded values reopen in the same state in the saved copy.
+    // In Simple mode the live spending card is force-expanded for the
+    // Simple inputs, so the state worth saving is the Advanced state
+    // the mode switch set aside, not the borrowed on-screen state.
+    const effectiveDisclosure = (viewMode === 'simple' && savedDisclosure)
+        ? savedDisclosure
+        : { spending: advancedIsExpanded('spending'), assumptions: advancedIsExpanded('assumptions') };
     ['spending', 'assumptions'].forEach(function (which) {
-        const body = document.getElementById(which + 'Body');
         const cloneBody = docClone.querySelector('#' + which + 'Body');
-        const toggle = document.getElementById(which + 'Toggle');
         const cloneToggle = docClone.querySelector('#' + which + 'Toggle');
-        if (body && cloneBody) {
-            if (body.hasAttribute('hidden')) cloneBody.setAttribute('hidden', '');
-            else cloneBody.removeAttribute('hidden');
+        const expanded = !!effectiveDisclosure[which];
+        if (cloneBody) {
+            if (expanded) cloneBody.removeAttribute('hidden');
+            else cloneBody.setAttribute('hidden', '');
         }
-        if (toggle && cloneToggle) {
-            cloneToggle.setAttribute('aria-expanded', toggle.getAttribute('aria-expanded'));
-            cloneToggle.textContent = toggle.textContent;
+        if (cloneToggle) {
+            cloneToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            cloneToggle.textContent = expanded ? 'Done' : 'Customize';
         }
+    });
+    // View mode: the saved copy reopens in the mode it was saved from.
+    const cloneBodyEl = docClone.querySelector('body');
+    if (cloneBodyEl) cloneBodyEl.setAttribute('data-mode', viewMode);
+    [['modeSimpleBtn', 'simple'], ['modeAdvancedBtn', 'advanced']].forEach(function (pair) {
+        const cloneBtn = docClone.querySelector('#' + pair[0]);
+        if (cloneBtn) cloneBtn.setAttribute('aria-pressed', viewMode === pair[1] ? 'true' : 'false');
     });
     ['toggleAdvancedBtn', 'restoreAllBtn', 'planStatus', 'planStatusDetail', 'spendingSummary', 'assumptionsSummary'].forEach(function (id) {
         const live = document.getElementById(id);
@@ -2204,6 +2478,7 @@ function init() {
     bindBeginnerControls();
     bindPayGuide();
     bindTabs();
+    bindViewMode();
     document.getElementById('mcRun').addEventListener('click', runMC);
     document.getElementById('mcPathsLabel').textContent = MODEL.mcPaths.toLocaleString();
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
@@ -2224,7 +2499,7 @@ function init() {
 }
 
 // Handles for external calculation checks and debugging
-window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC, workerPlanLimit: workerPlanLimit, iraLimit: iraLimit, calculateLimits: calculateLimits, routeAmount: routeAmount, annualizedPay: annualizedPay };
+window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC, workerPlanLimit: workerPlanLimit, iraLimit: iraLimit, calculateLimits: calculateLimits, routeAmount: routeAmount, annualizedPay: annualizedPay, setViewMode: setViewMode, getViewMode: function () { return viewMode; } };
 
 init();
 </script>
