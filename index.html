@@ -602,8 +602,8 @@
             <div class="input-group">
                 <label for="spendingN">Desired annual spending in retirement</label>
                 <div class="dual">
-                    <input type="range" id="spendingR" min="20000" max="250000" step="1000" value="80000" aria-label="Annual spending slider">
-                    <span class="numwrap"><span class="unit">$</span><input type="number" id="spendingN" min="0" step="1000" value="80000"></span>
+                    <input type="range" id="spendingR" min="20000" max="250000" step="100" value="80000" aria-label="Annual spending slider">
+                    <span class="numwrap"><span class="unit">$</span><input type="number" id="spendingN" min="0" step="100" value="80000"></span>
                 </div>
                 <p class="help">In today's dollars. The simulators raise it with inflation each year of retirement.</p>
             </div>
@@ -633,6 +633,15 @@
                     <span class="numwrap"><input type="number" id="wrN" min="2" max="8" step="0.1" value="4"><span class="unit">%</span></span>
                 </div>
                 <p class="help">Used for the target portfolio and the monthly income estimates. Higher means more income now and more risk later.</p>
+            </div>
+
+            <div class="input-group adv-only">
+                <label for="legacyN">Leave behind at the end</label>
+                <div class="dual">
+                    <input type="range" id="legacyR" min="0" max="2000000" step="10000" value="0" aria-label="Leave behind at the end slider">
+                    <span class="numwrap"><span class="unit">$</span><input type="number" id="legacyN" min="0" step="1000" value="0"></span>
+                </div>
+                <p class="help">The amount you want still invested at your plan-through age, in today's dollars. Zero means plan to use the money during your life, not die with it. A cushion or an inheritance goes here.</p>
             </div>
             </div>
         </div>
@@ -866,6 +875,16 @@
         <p class="card-note simple-only">This follows your money year by year after retirement, using your spending and Social Security.</p>
         <p class="card-note adv-only">Timing, stated plainly: each year the net need (spending minus guaranteed income) leaves the portfolio at the start of the year, then what remains grows for the year. If guaranteed income beats spending, the surplus is added to the portfolio instead. The market drop setting, when above zero, lands once before the first retirement year. Full year by year numbers are under Details.</p>
     </div>
+
+    <div class="card adv-only" id="spendDownCard">
+        <div class="card-header">Spend-down check</div>
+        <p class="table-explainer">Most retirement plans are not trying to finish rich. This check compares the projected leftover with the amount you actually want left behind, then solves for the spending that lands near it.</p>
+        <div class="breakdown-box" id="spendDownBox"></div>
+        <div style="margin-top:12px;">
+            <button class="btn primary" id="spendDownBtn" type="button">Use this spending</button>
+        </div>
+        <p class="card-note">Room above the goal can also mean saving less or retiring earlier. The Goal tools and What-if sections can show those sides.</p>
+    </div>
 </section>
 
 <!-- ============================================================
@@ -903,7 +922,7 @@
         <div class="chart-wrapper">
             <svg id="mcChart" preserveAspectRatio="none" role="img" aria-label="Monte Carlo percentile band chart"></svg>
         </div>
-        <p class="card-note">The shaded band is the middle 80 percent of paths (10th to 90th percentile); the line is the median. Changing any input marks these results stale rather than silently rerunning.</p>
+        <p class="card-note">The shaded band is the middle 80 percent of paths (10th to 90th percentile); the line is the median. Changing any input marks these results stale rather than silently rerunning. A plan can also succeed too well: a very large projected leftover usually means room to spend more, save less, or retire sooner, and the Spend-down check in Income puts a number on it.</p>
     </div>
 
     <div class="card">
@@ -1033,6 +1052,12 @@
                     <li>Each retirement year: net withdrawal equals that year's spending minus guaranteed income (Social Security plus other guaranteed income). The net amount leaves at the start of the year, then the remainder grows at the scenario return for the year. If guaranteed income exceeds spending, the surplus is added to the portfolio at the start of the year instead.</li>
                     <li>The market drop setting is applied once, before the first retirement year. A portfolio that cannot cover a year's net withdrawal is marked depleted at that age.</li>
                 </ul>
+                <h4>Spend-down goal</h4>
+                <ul>
+                    <li>The leave-behind goal is entered in today's dollars. For comparison with the simulator, it is converted to nominal dollars at the plan-through age by multiplying by (1 + inflation) raised to the total years from today through that age.</li>
+                    <li>The affordable spending solver uses bisection over the same income simulator and selected scenario. Ending balance falls as spending rises, so repeated midpoint tests find the annual spending, in today's dollars, whose projected ending balance lands near the nominal goal.</li>
+                    <li>The solved spending inherits the selected scenario's smooth return assumption. It is a planning estimate, not a promise, and the Monte Carlo section is the stress check for uneven market returns.</li>
+                </ul>
                 <h4>Monte Carlo</h4>
                 <ul>
                     <li>Annual returns are drawn from a normal distribution centered on your planning return with your volatility as the standard deviation, floored at -80% and capped at +100%. Within each year the drawn return is spread evenly across months while contributions continue monthly.</li>
@@ -1096,6 +1121,7 @@ const DEFAULTS = {
     ssMonthly: 2500,
     otherMonthly: 0,
     wr: 4,
+    legacyGoal: 0,
     inflation: 2.5,
     planReturn: 8,
     volatility: 15,
@@ -1127,6 +1153,7 @@ const DUALS = [
     { r: 'ssR', n: 'ssN' },
     { r: 'otherIncR', n: 'otherIncN' },
     { r: 'wrR', n: 'wrN' },
+    { r: 'legacyR', n: 'legacyN' },
     { r: 'inflR', n: 'inflN' },
     { r: 'planRetR', n: 'planRetN' },
     { r: 'volR', n: 'volN' },
@@ -1229,6 +1256,7 @@ function applyDefaults(scope) {
         setDualValue('ssR', 'ssN', DEFAULTS.ssMonthly);
         setDualValue('otherIncR', 'otherIncN', DEFAULTS.otherMonthly);
         setDualValue('wrR', 'wrN', DEFAULTS.wr);
+        setDualValue('legacyR', 'legacyN', DEFAULTS.legacyGoal);
     }
     if (scope === 'all' || scope === 'assumptions') {
         setDualValue('inflR', 'inflN', DEFAULTS.inflation);
@@ -1270,7 +1298,8 @@ function settingsDirty(inp) {
         spending: !nearValue(inp.spending, DEFAULTS.spending, 0.01) ||
             !nearValue(inp.ssMonthly, DEFAULTS.ssMonthly, 0.01) ||
             !nearValue(inp.otherMonthly, DEFAULTS.otherMonthly, 0.01) ||
-            !nearValue(inp.wr, DEFAULTS.wr / 100, 0.00001),
+            !nearValue(inp.wr, DEFAULTS.wr / 100, 0.00001) ||
+            !nearValue(inp.legacyGoal, DEFAULTS.legacyGoal, 0.01),
         assumptions: !nearValue(inp.inflation, DEFAULTS.inflation / 100, 0.00001) ||
             !nearValue(inp.planReturn, DEFAULTS.planReturn / 100, 0.00001) ||
             !nearValue(inp.volatility, DEFAULTS.volatility / 100, 0.00001) ||
@@ -1311,7 +1340,8 @@ function syncDefaultsUI(inp) {
 
     document.getElementById('spendingSummary').textContent =
         formatMoneyFull(inp.spending) + '/yr spending · ' + formatMoneyFull(inp.ssMonthly) + '/mo Social Security · ' +
-        formatMoneyFull(inp.otherMonthly) + '/mo other income · ' + formatPercentPoints(inp.wr) + '% withdrawal rate';
+        formatMoneyFull(inp.otherMonthly) + '/mo other income · ' + formatPercentPoints(inp.wr) + '% withdrawal rate' +
+        (inp.legacyGoal > 0 ? ' · leaves ' + formatMoneyFull(inp.legacyGoal) + ' at the end' : '');
     document.getElementById('assumptionsSummary').textContent =
         formatPercentPoints(inp.inflation) + '% inflation · ' + formatPercentPoints(inp.planReturn) + '% planning return · ' +
         formatPercentPoints(inp.volatility) + '% volatility · ' + formatPercentPoints(inp.drop) + '% retirement drop · ' +
@@ -1443,6 +1473,7 @@ function getInputs() {
         ssMonthly: numVal('ssN', 0),
         otherMonthly: numVal('otherIncN', 0),
         wr: numVal('wrN', 4) / 100,
+        legacyGoal: numVal('legacyN', 0),
         inflation: numVal('inflN', 2.5) / 100,
         planReturn: numVal('planRetN', 8) / 100,
         volatility: numVal('volN', 15) / 100,
@@ -1855,9 +1886,20 @@ function renderSimpleAnswers(inp, required, fiAge, income, retireAge) {
     }
 
     // Lasting line: how long the money lasts once retirement starts.
-    lasting.textContent = 'At your planned retirement age of ' + retireAge +
+    // A funded plan also names its projected leftover in today's
+    // dollars, using the same inflation span as the Income section.
+    let lastingText = 'At your planned retirement age of ' + retireAge +
         ', your money is projected to last through age ' + income.fundedThrough +
-        ' on the ' + scenarioDisplayName(inp.scenario) + ' path.';
+        ' on the ' + scenarioDisplayName(inp.scenario) + ' path';
+    if (income.depletedAge === null) {
+        const thruAge = Math.max(inp.planAge, retireAge);
+        const leftoverToday = income.endBalance /
+            Math.pow(1 + inp.inflation, inp.years + (thruAge - retireAge));
+        lastingText += ', with about ' + formatMoneyCompact(leftoverToday) + ' left over.';
+    } else {
+        lastingText += '.';
+    }
+    lasting.textContent = lastingText;
 }
 
 /* ---------- 5. Retirement income and longevity simulator ---------- */
@@ -1917,7 +1959,148 @@ function incomeSimFor(inp, scenarioKey, overrides) {
     });
 }
 
-/* ---------- 6. What-if scenario lab ---------- */
+/* ---------- 6. Spend-down goal and affordable spending solver ---------- */
+// The leave-behind goal is entered in today's dollars. The income
+// simulator works in nominal dollars, so the goal is inflated over the
+// full span from today to the plan-through age before comparison.
+function endingGoalNominal(inp) {
+    const retireAge = inp.age + inp.years;
+    const thruAge = Math.max(inp.planAge, retireAge);
+    return inp.legacyGoal * Math.pow(1 + inp.inflation, inp.years + (thruAge - retireAge));
+}
+
+// Find the annual spending, still expressed in today's dollars, whose
+// ending balance lands on the nominal goal. Ending balance falls
+// monotonically as spending rises, so bisection over the existing
+// income simulator is stable and does not fork the retirement math.
+function solveAffordableSpending(inp) {
+    const goalNominal = endingGoalNominal(inp);
+    const guaranteedAnnual = (inp.ssMonthly + inp.otherMonthly) * 12;
+    const endAt = function (spending) {
+        return incomeSimFor(inp, inp.scenario, { spending: spending }).endBalance;
+    };
+    const zeroEnd = endAt(0);
+    if (zeroEnd < goalNominal) {
+        return {
+            affordable: 0, reachable: false, capped: false,
+            goalNominal: goalNominal, zeroEnd: zeroEnd
+        };
+    }
+
+    const cap = 10000000;
+    let lo = 0;
+    let hi = Math.max(inp.spending * 2, guaranteedAnnual, 100000);
+    while (endAt(hi) > goalNominal && hi < cap) {
+        hi = Math.min(cap, hi * 2);
+    }
+    if (endAt(hi) > goalNominal) {
+        return {
+            affordable: hi, reachable: true, capped: true,
+            goalNominal: goalNominal, zeroEnd: zeroEnd
+        };
+    }
+    for (let i = 0; i < 60; i++) {
+        const mid = (lo + hi) / 2;
+        // Equality belongs to the high side: once a plan depletes, its
+        // ending balance plateaus at zero, and treating that plateau as
+        // success would push the answer toward ever higher spending.
+        // This keeps the result at the highest spending whose ending
+        // balance is still genuinely above the goal before the crossing.
+        if (endAt(mid) > goalNominal) lo = mid;
+        else hi = mid;
+    }
+    return {
+        affordable: lo, reachable: true, capped: false,
+        goalNominal: goalNominal, zeroEnd: zeroEnd
+    };
+}
+
+function renderSpendDown(inp, income) {
+    const box = document.getElementById('spendDownBox');
+    const button = document.getElementById('spendDownBtn');
+    if (!box || !button) return;
+
+    const retireAge = inp.age + inp.years;
+    const thruAge = Math.max(inp.planAge, retireAge);
+    const goalNominal = endingGoalNominal(inp);
+    const endElapsed = income.depletedAge === null
+        ? thruAge - retireAge
+        : income.depletedAge - retireAge;
+    const leftoverToday = income.depletedAge === null
+        ? income.endBalance / Math.pow(1 + inp.inflation, inp.years + endElapsed)
+        : 0;
+    const solved = solveAffordableSpending(inp);
+    const roundedSpending = Math.round(solved.affordable / 100) * 100;
+    let html = '';
+
+    html += '<div class="breakdown-row"><span class="bd-label">Projected leftover at age ' + thruAge +
+        '<span class="inc-cell">Today\'s dollars: ' + formatMoneyFull(leftoverToday) + '</span></span>' +
+        '<span class="bd-val">' + formatMoneyFull(income.endBalance) + '</span></div>';
+    html += '<div class="breakdown-row"><span class="bd-label">Your leave-behind goal' +
+        '<span class="inc-cell">Nominal equivalent: ' + formatMoneyFull(goalNominal) + '</span></span>' +
+        '<span class="bd-val">' + formatMoneyFull(inp.legacyGoal) + ' today</span></div>';
+
+    if (income.depletedAge !== null) {
+        html += '<div class="breakdown-row"><span class="bd-label">Difference</span>' +
+            '<span class="bd-val">The plan runs out before any leftover question applies</span></div>';
+    } else {
+        const diffToday = leftoverToday - inp.legacyGoal;
+        html += '<div class="breakdown-row"><span class="bd-label">Difference</span><span class="bd-val">' +
+            (Math.abs(diffToday) < 1
+                ? 'Right on your goal'
+                : 'About ' + formatMoneyFull(Math.abs(diffToday)) + (diffToday > 0 ? ' above' : ' below') +
+                    ' your goal (today\'s dollars)') + '</span></div>';
+    }
+
+    if (!solved.reachable) {
+        html += '<div class="breakdown-row"><span class="bd-label">Spending that lands near your goal' +
+            '<span class="inc-cell">On the ' + scenarioDisplayName(inp.scenario) + ' path</span></span>' +
+            '<span class="bd-val">Out of reach</span></div>';
+        html += '<div class="breakdown-notes">Even with no spending, this plan is projected to end below the goal. The leave-behind goal is out of reach under the current settings, so no spending figure is shown.</div>';
+        button.disabled = true;
+        button.textContent = 'Goal out of reach';
+        button.setAttribute('data-affordable', '');
+    } else {
+        html += '<div class="breakdown-row"><span class="bd-label">Spending that lands near your goal' +
+            '<span class="inc-cell">On the ' + scenarioDisplayName(inp.scenario) + ' path, in today\'s dollars</span></span>' +
+            '<span class="bd-val">' + formatMoneyFull(solved.affordable) + '/yr</span></div>';
+        const spendingDiff = solved.affordable - inp.spending;
+        let comparison;
+        if (Math.abs(spendingDiff) <= 100) comparison = 'That is about the same as your desired spending.';
+        else if (spendingDiff > 0) comparison = 'That is about ' + formatMoneyFull(spendingDiff) + ' more a year you could spend.';
+        else comparison = 'That is about ' + formatMoneyFull(Math.abs(spendingDiff)) + ' less a year than planned.';
+        html += '<div class="breakdown-notes">' + comparison + (solved.capped
+            ? ' The search stopped at the $10,000,000 annual spending cap, so the goal may still be above the projected ending balance at that cap.'
+            : '') + '</div>';
+        const already = Math.abs(inp.spending - roundedSpending) <= 100;
+        button.disabled = already;
+        button.textContent = already
+            ? 'Spending already lands near the goal'
+            : 'Use this spending (' + formatMoneyFull(roundedSpending) + ')';
+        button.setAttribute('data-affordable', String(roundedSpending));
+    }
+    box.innerHTML = html;
+}
+
+// Matching control action for the spend-down solver, following the
+// set-to-required pattern: the rounded amount is staged on the button
+// during render, then one click writes it to the spending control.
+function applyAffordableSpending() {
+    const source = document.getElementById('spendDownBtn');
+    const rounded = parseFloat(source ? source.getAttribute('data-affordable') : NaN);
+    if (isNaN(rounded) || rounded < 0) return;
+    disarmRestoreAll();
+    setDualValue('spendingR', 'spendingN', rounded);
+    updateAll();
+    announcePlan('Desired spending set to the spend-down amount.');
+}
+
+function bindSpendDown() {
+    const button = document.getElementById('spendDownBtn');
+    if (button) button.addEventListener('click', applyAffordableSpending);
+}
+
+/* ---------- 7. What-if scenario lab ---------- */
 function renderWhatIf(inp, baseline) {
     const scen = inp.scenario;
     const cases = [
@@ -2048,6 +2231,7 @@ function updateAll() {
     document.getElementById('incFirstNet').textContent = formatMoneyFull(income.firstNet);
     document.getElementById('incTotalNet').textContent = formatMoneyCompact(income.totalWithdrawn);
 
+    renderSpendDown(inp, income);
     renderBreakdown(inp);
     renderLimitsTable(inp);
     renderWhatIf(inp, income);
@@ -2552,6 +2736,7 @@ function init() {
     bindDuals();
     bindBeginnerControls();
     bindPayGuide();
+    bindSpendDown();
     bindTabs();
     bindViewMode();
     document.getElementById('mcRun').addEventListener('click', runMC);
@@ -2574,7 +2759,7 @@ function init() {
 }
 
 // Handles for external calculation checks and debugging
-window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC, workerPlanLimit: workerPlanLimit, iraLimit: iraLimit, calculateLimits: calculateLimits, routeAmount: routeAmount, annualizedPay: annualizedPay, payBreakdown: payBreakdown, setViewMode: setViewMode, getViewMode: function () { return viewMode; } };
+window.RC = { accumulate: accumulate, simulateRetirement: simulateRetirement, solveRequiredContribution: solveRequiredContribution, getInputs: getInputs, runMC: runMC, workerPlanLimit: workerPlanLimit, iraLimit: iraLimit, calculateLimits: calculateLimits, routeAmount: routeAmount, annualizedPay: annualizedPay, payBreakdown: payBreakdown, endingGoalNominal: endingGoalNominal, solveAffordableSpending: solveAffordableSpending, incomeSimFor: incomeSimFor, setViewMode: setViewMode, getViewMode: function () { return viewMode; } };
 
 init();
 </script>
