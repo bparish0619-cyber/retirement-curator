@@ -24,6 +24,14 @@
             --accent-purple: #7c3aed;
             --chart-grid: #d5d2c2;
             --milestone-bg: #eceade;
+            /* Motion tokens (Northbrand DNA section 10, added 2026-11-10).
+               CHANGE-ME: retune motion family-wide from these six values. */
+            --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+            --ease-inout-strong: cubic-bezier(0.77, 0, 0.175, 1);
+            --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+            --dur-press: 140ms;
+            --dur-small: 180ms;
+            --dur-menu: 220ms;
         }
 
         [data-theme="dark"] {
@@ -53,7 +61,7 @@
             background: var(--bg-color);
             color: var(--text-main);
             padding: 15px;
-            transition: background 0.3s;
+            transition: background var(--dur-menu) ease;
             line-height: 1.5;
             font-size: 16px;
             max-width: 100%;
@@ -72,7 +80,7 @@
         button.icon-btn {
             cursor: pointer; width: 44px; height: 44px; border-radius: 12px;
             border: 1px solid var(--border); background: var(--card-bg); color: var(--text-main);
-            display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.2s; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: var(--dur-small) var(--ease-out-strong); flex-shrink: 0;
         }
         button.icon-btn:hover { background: var(--border); }
         button.primary-icon { background: var(--primary); color: white; border: none; }
@@ -134,7 +142,7 @@
         .btn {
             cursor: pointer; border-radius: 12px; border: 1px solid var(--border);
             background: var(--card-bg); color: var(--text-main); font-weight: 700;
-            padding: 10px 16px; min-height: 44px; font-size: 0.95rem; transition: 0.2s;
+            padding: 10px 16px; min-height: 44px; font-size: 0.95rem; transition: var(--dur-small) var(--ease-out-strong);
         }
         .btn:hover { background: var(--border); }
         .btn.primary { background: var(--primary); border: none; color: #fff; }
@@ -207,7 +215,7 @@
         .mode-btn {
             flex: 1 1 220px; min-height: 56px; border-radius: 12px; cursor: pointer;
             border: 1px solid transparent; background: transparent; color: var(--text-main);
-            padding: 10px 14px; text-align: left; transition: 0.2s;
+            padding: 10px 14px; text-align: left; transition: var(--dur-small) var(--ease-out-strong);
         }
         .mode-btn strong { display: block; font-size: 1rem; }
         .mode-btn span { display: block; color: var(--text-muted); font-size: 0.84rem; margin-top: 2px; }
@@ -274,7 +282,7 @@
         .chart-label { font-size: 10px; fill: var(--text-muted); }
         .tooltip {
             position: absolute; background: var(--card-bg); border: 1px solid var(--border); padding: 8px 12px;
-            border-radius: 6px; font-size: 0.8rem; pointer-events: none; opacity: 0; transition: opacity 0.1s;
+            border-radius: 6px; font-size: 0.8rem; pointer-events: none; opacity: 0; transition: opacity var(--dur-press) ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 100; line-height: 1.4; white-space: nowrap; max-width: 90%;
         }
 
@@ -545,7 +553,7 @@
                 <div class="dual">
                     <span class="numwrap"><span class="unit">$</span><input type="number" id="annualContribution" min="0" step="500" value="30500"></span>
                 </div>
-                <p class="help" id="taxRoomLine">2026 tax-advantaged room at the ages entered: $32,000 ($24,500 workplace plan + $7,500 IRA). Amounts above that are planned as taxable brokerage.</p>
+                <p class="help" id="taxRoomLine">2027 tax-advantaged room at the ages entered: $33,000 ($25,500 workplace plan + $7,500 IRA). Amounts above that are planned as taxable brokerage.</p>
             </div>
 
             <div class="input-group adv-only">
@@ -693,7 +701,7 @@
         <div class="card span2 adv-only">
             <div class="card-header">Where the annual investment goes</div>
             <div class="breakdown-box" id="contribBreakdown"></div>
-            <p class="card-note">Routing uses the 2026 IRS limits for each person's age: fill workplace plan room first, then IRA room, then taxable brokerage. This household planning view assumes each person has access to a plan, enough compensation in their own name, and a plan that permits catch-ups. The box shows the first year; Details projects the limits by year.</p>
+            <p class="card-note">Routing uses the 2027 IRS limits for each person's age: fill workplace plan room first, then IRA room, then taxable brokerage. This household planning view assumes each person has access to a plan, enough compensation in their own name, and a plan that permits catch-ups. The box shows the first year; Details projects the limits by year.</p>
         </div>
     </div>
 </section>
@@ -994,7 +1002,7 @@
         </div>
 
         <div class="tab-panel" id="tab-limits" role="tabpanel" hidden>
-            <p class="table-explainer">Ages advance each projection year. Future-year rooms use the 2026 IRS limits held constant; future limits are not predicted or inflation adjusted in this tool. Annual investment follows the first-year amount and your contribution increase setting.</p>
+            <p class="table-explainer">Ages advance each projection year. Future-year rooms use the 2027 IRS limits held constant; future limits are not predicted or inflation adjusted in this tool. Annual investment follows the first-year amount and your contribution increase setting.</p>
             <div class="table-container">
                 <table id="limitsTable">
                     <thead><tr><th>Year</th><th>Your age</th><th>Spouse age</th><th>Annual investment</th><th>Workplace room</th><th>IRA room</th><th>Tax-advantaged total</th><th>Taxable amount</th></tr></thead>
@@ -1017,10 +1025,10 @@
                 </ul>
                 <h4>Contribution limits and routing</h4>
                 <ul>
-                    <li>For 2026, the employee elective deferral limit for a 401(k), 403(b), or governmental 457 plan is $24,500. The catch-up is $8,000 at age 50 or older, for a total of $32,500. At ages 60, 61, 62, and 63, the higher catch-up is $11,250, for a total of $35,750. At age 64, the limit returns to the age 50 catch-up level.</li>
-                    <li>For 2026, the IRA limit is $7,500, plus a $1,100 catch-up at age 50 or older, for a total of $8,600. IRA contributions cannot exceed taxable compensation for the year. Workplace elective deferrals are also compensation based, and an employer plan can impose a lower limit.</li>
+                    <li>For 2027, the employee elective deferral limit for a 401(k), 403(b), or governmental 457 plan is $25,500. The catch-up is $8,500 at age 50 or older, for a total of $34,000. At ages 60, 61, 62, and 63, the higher catch-up is $11,750, for a total of $37,250. At age 64, the limit returns to the age 50 catch-up level.</li>
+                    <li>For 2027, the IRA limit is $7,500, plus a $1,100 catch-up at age 50 or older, for a total of $8,600. IRA contributions cannot exceed taxable compensation for the year. Workplace elective deferrals are also compensation based, and an employer plan can impose a lower limit.</li>
                     <li>Limits are per person. A married single-earner household has one workplace plan limit and two IRA limits, including a spousal IRA. A married dual-earner household has two workplace plan limits and two IRA limits. Each IRA and workplace limit uses that person's own age, including the spouse age entered in Step 1.</li>
-                    <li>The year-by-year limits table holds the 2026 limits constant for future years. It does not predict or inflation adjust future IRS limits.</li>
+                    <li>The year-by-year limits table holds the 2027 limits constant for future years. It does not predict or inflation adjust future IRS limits.</li>
                     <li>Not modeled: Roth IRA income eligibility, traditional IRA deduction phaseouts, the 403(b) 15-year catch-up, separate 457 plan details, SIMPLE plans, employer contributions, and the separate overall annual-additions limit. Employer contributions are not part of the annual investment input.</li>
                 </ul>
                 <h4>Salary guidance</h4>
@@ -1080,8 +1088,8 @@
 const MODEL = {
     // Deterministic scenario annual returns (decimal)
     rates: { con: 0.07, mod: 0.10, hist: 0.129 },
-    // 2026 contribution limits
-    limits: { base401k: 24500, catchUp401k: 8000, superCatchUp401k: 11250, baseIRA: 7500, catchUpIRA: 1100 },
+    // 2027 contribution limits
+    limits: { base401k: 25500, catchUp401k: 8500, superCatchUp401k: 11750, baseIRA: 7500, catchUpIRA: 1100 },
     // Monte Carlo path count (1,000 stays responsive; lower it on slow devices)
     mcPaths: 1000,
     // Monte Carlo random seed: fixed so a given plan reproduces the same run
@@ -1547,7 +1555,7 @@ function solveRequiredContribution(inp, target) {
     return hi;
 }
 
-/* ---------- Contribution limits (2026), per person by age ---------- */
+/* ---------- Contribution limits (2027), per person by age ---------- */
 // IRS limits belong to a person, not to a household. These two helpers
 // are the only place the age bands are applied; household totals are
 // assembled below from the user's and spouse's own ages.
@@ -1602,7 +1610,7 @@ function renderBreakdown(inp) {
     const limits = calculateLimits(inp.age, inp.status, inp.spouseAge);
     const routed = routeAmount(inp.contribution, limits);
     document.getElementById('taxRoomLine').textContent =
-        '2026 tax-advantaged room at the ages entered: ' + formatMoneyFull(limits.combined) +
+        '2027 tax-advantaged room at the ages entered: ' + formatMoneyFull(limits.combined) +
         ' (' + formatMoneyFull(limits.workplace) + ' workplace plan + ' + formatMoneyFull(limits.ira) +
         ' IRA). Amounts above that are planned as taxable brokerage.';
     const total = inp.contribution || 1;
@@ -2370,10 +2378,10 @@ function renderCashTable(income) {
 function renderMilestones(currentAge) {
     const container = document.getElementById('milestoneList');
     const events = [
-        { age: 50, title: 'Catch-Up Contributions', desc: '+$8,000 to a workplace plan, +$1,100 to an IRA.' },
+        { age: 50, title: 'Catch-Up Contributions', desc: '+$8,500 to a workplace plan, +$1,100 to an IRA.' },
         { age: 55, title: 'Rule of 55', desc: 'Penalty-free 401k withdrawals if separating from service.' },
         { age: 59, title: '59\u00BD Full Access', desc: 'Penalty-free withdrawals from all retirement accounts.' },
-        { age: 60, title: 'Super Catch-Up (60 to 63)', desc: '401k catch-up increases to about $11,250.' },
+        { age: 60, title: 'Super Catch-Up (60 to 63)', desc: '401k catch-up increases to about $11,750.' },
         { age: 65, title: 'Medicare Eligibility', desc: 'Primary health insurance coverage begins.' },
         { age: 67, title: 'Social Security Full Age', desc: '100% benefit amount available.' },
         { age: 73, title: 'RMDs Begin', desc: 'Mandatory withdrawals from Traditional accounts.' }
@@ -2607,6 +2615,25 @@ function runMC() {
     document.getElementById('mcStatus').textContent = 'Ran ' + MODEL.mcPaths.toLocaleString() + ' paths at ' + hh + ':' + mm + '. Results match the current inputs.';
 }
 
+/* Fan chart draw-on reveal (added 2026-11-10 at Brandon's direction;
+   a recorded exception to this page's "design passes never touch the
+   script" rule in DESIGN.md: the change is presentation only, a clip
+   sweep over the finished SVG, and the simulation and chart geometry
+   are untouched). Each Monte Carlo render draws the band in from the
+   left over 700ms, so the spread of outcomes reads as it arrives.
+   Reduced motion skips the sweep and the chart simply appears. */
+function animateChartReveal(svg) {
+    if (!svg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    svg.style.transition = 'none';
+    svg.style.clipPath = 'inset(0 100% 0 0)';
+    requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+            svg.style.transition = 'clip-path 700ms var(--ease-inout-strong)';
+            svg.style.clipPath = 'inset(0 0% 0 0)';
+        });
+    });
+}
+
 function renderMCChart(band) {
     const svg = document.getElementById('mcChart');
     if (!svg || !svg.clientWidth || !band) return;
@@ -2627,6 +2654,7 @@ function renderMCChart(band) {
     let medPath = 'M ' + xScale(0) + ' ' + ax.yScale(band.p50[0]);
     band.p50.forEach(function (v, i) { medPath += ' L ' + xScale(i) + ' ' + ax.yScale(v); });
     svg.appendChild(createSVG('path', { d: medPath, 'class': 'line-med' }));
+    animateChartReveal(svg);
 }
 
 
