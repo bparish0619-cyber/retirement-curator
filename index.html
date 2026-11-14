@@ -24,6 +24,11 @@
             --accent-purple: #7c3aed;
             --chart-grid: #d5d2c2;
             --milestone-bg: #eceade;
+            /* Chart tooltip (Northbrand DNA section 11, rule 4): the light
+               theme keeps its card treatment; the dark theme overrides
+               these with the exact DNA hexes below. */
+            --tooltip-bg: #fffdf9;
+            --tooltip-text: #1e293b;
             /* Motion tokens (Northbrand DNA section 10, added 2026-11-10).
                CHANGE-ME: retune motion family-wide from these six values. */
             --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
@@ -47,6 +52,10 @@
             --accent-purple: #a78bfa;
             --chart-grid: #2c303e;
             --milestone-bg: #232635;
+            /* DNA section 11 tooltip standard on dark: #1c1f27 surface,
+               #ece9df text, border stays Line #2c303e via --border. */
+            --tooltip-bg: #1c1f27;
+            --tooltip-text: #ece9df;
         }
 
         /* Global guards against mobile overflow */
@@ -281,10 +290,22 @@
         .line-med { fill: none; stroke: var(--accent-green); stroke-width: 3; }
         .chart-label { font-size: 10px; fill: var(--text-muted); }
         .tooltip {
-            position: absolute; background: var(--card-bg); border: 1px solid var(--border); padding: 8px 12px;
+            position: absolute; background: var(--tooltip-bg); color: var(--tooltip-text); border: 1px solid var(--border); padding: 8px 12px;
             border-radius: 6px; font-size: 0.8rem; pointer-events: none; opacity: 0; transition: opacity var(--dur-press) ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 100; line-height: 1.4; white-space: nowrap; max-width: 90%;
         }
+        /* Growth chart keyboard access (DNA section 11, rule 6, added
+           2026-11-14): --primary is Gold Bright #e8b33c on dark and Gold
+           Deep #9a7208 on light, so the focus outline and the age cursor
+           follow the theme's gold automatically. */
+        #mainChart:focus { outline: 3px solid var(--primary); outline-offset: 1px; }
+        .chart-cursor { pointer-events: none; }
+        .chart-cursor-line { stroke: var(--primary); stroke-width: 1.5; stroke-dasharray: 3 3; }
+        .chart-cursor-dot { stroke: var(--card-bg); stroke-width: 1.5; }
+        .dot-con { fill: var(--accent-orange); }
+        .dot-mod { fill: var(--accent-green); }
+        .dot-hist { fill: var(--accent-purple); }
+        .chart-readout { min-height: 1.25em; }
 
         /* --- Tables --- */
         .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 12px; border: 1px solid var(--border); max-height: 420px; width: 100%; max-width: 100%; }
@@ -774,9 +795,11 @@
             </div>
         </div>
         <div class="chart-wrapper">
-            <svg id="mainChart" preserveAspectRatio="none" role="img" aria-label="Accumulation growth chart"></svg>
+            <svg id="mainChart" preserveAspectRatio="none" role="img" tabindex="0" aria-label="Accumulation growth chart. Focus this chart and use the left and right arrow keys to read the balances age by age."></svg>
             <div id="tooltip" class="tooltip"></div>
         </div>
+        <p class="card-note chart-readout" id="growthReadout" aria-live="polite">Keyboard: focus the chart, then use the left and right arrow keys to read the balances age by age.</p>
+        <div id="growthMilestones"></div>
     </div>
 
     <div class="plan-grid adv-only">
@@ -867,6 +890,7 @@
         <div class="chart-wrapper adv-only">
             <svg id="incomeChart" preserveAspectRatio="none" role="img" aria-label="Portfolio balance by age in retirement"></svg>
         </div>
+        <div id="incomeMilestones" class="adv-only"></div>
         <p class="card-note simple-only">This follows your money year by year after retirement, using your spending and Social Security.</p>
         <p class="card-note adv-only">Timing, stated plainly: each year the net need (spending minus guaranteed income) leaves the portfolio at the start of the year, then what remains grows for the year. If guaranteed income beats spending, the surplus is added to the portfolio instead. The market drop setting, when above zero, lands once before the first retirement year. Full year by year numbers are under Details.</p>
     </div>
@@ -2466,7 +2490,58 @@ function renderChart(acc, inp) {
     svg.appendChild(createSVG('path', { d: path(acc.mod.points), 'class': 'line-mod' }));
     svg.appendChild(createSVG('path', { d: path(acc.hist.points), 'class': 'line-hist' }));
 
-    // Hover tooltip
+    // Hover and keyboard share one cursor (DNA section 11, rule 6,
+    // added 2026-11-14): the values the mouse sees in the tooltip are
+    // the values the arrow keys reach, echoed in full into the
+    // aria-live readout under the chart. Presentation only; the
+    // projection math above is untouched.
+    const tooltip = document.getElementById('tooltip');
+    const readout = document.getElementById('growthReadout');
+    const cursor = createSVG('g', { 'class': 'chart-cursor', 'aria-hidden': 'true' });
+    const cursorLine = createSVG('line', { 'class': 'chart-cursor-line', x1: 0, y1: 0, x2: 0, y2: 0 });
+    const dotCon = createSVG('circle', { r: 4.5, 'class': 'chart-cursor-dot dot-con' });
+    const dotMod = createSVG('circle', { r: 4.5, 'class': 'chart-cursor-dot dot-mod' });
+    const dotHist = createSVG('circle', { r: 4.5, 'class': 'chart-cursor-dot dot-hist' });
+    cursor.appendChild(cursorLine);
+    cursor.appendChild(dotCon);
+    cursor.appendChild(dotMod);
+    cursor.appendChild(dotHist);
+    cursor.style.display = 'none';
+    let cursorIdx = null;
+    const showCursor = function (idx, fromKeys) {
+        cursorIdx = idx;
+        const x = xScale(idx);
+        cursorLine.setAttribute('x1', x);
+        cursorLine.setAttribute('x2', x);
+        cursorLine.setAttribute('y1', ax.padTop);
+        cursorLine.setAttribute('y2', ax.h - ax.padBottom);
+        dotCon.setAttribute('cx', x); dotCon.setAttribute('cy', ax.yScale(acc.con.points[idx].balance));
+        dotMod.setAttribute('cx', x); dotMod.setAttribute('cy', ax.yScale(acc.mod.points[idx].balance));
+        dotHist.setAttribute('cx', x); dotHist.setAttribute('cy', ax.yScale(acc.hist.points[idx].balance));
+        cursor.style.display = '';
+        tooltip.style.left = Math.min(Math.max(x + 10, 0), ax.w - 10) + 'px';
+        tooltip.style.top = Math.max(ax.yScale(acc.mod.points[idx].balance) - 70, 10) + 'px';
+        tooltip.style.opacity = 1;
+        tooltip.innerHTML = '<strong>Age ' + (inp.age + idx) + '</strong> (' + (new Date().getFullYear() + idx) + ')<br>Hist: ' +
+            formatMoneyCompact(acc.hist.points[idx].balance) + '<br>Mod: ' + formatMoneyCompact(acc.mod.points[idx].balance) +
+            '<br>Con: ' + formatMoneyCompact(acc.con.points[idx].balance);
+        if (fromKeys && readout) {
+            readout.textContent = 'Age ' + (inp.age + idx) + ' (' + (new Date().getFullYear() + idx) + '): Historical ' +
+                formatMoneyFull(acc.hist.points[idx].balance) + ', Moderate ' + formatMoneyFull(acc.mod.points[idx].balance) +
+                ', Conservative ' + formatMoneyFull(acc.con.points[idx].balance) + '.';
+        }
+    };
+    const hideCursor = function () {
+        cursorIdx = null;
+        cursor.style.display = 'none';
+        tooltip.style.opacity = 0;
+    };
+    growthKeys = {
+        show: showCursor, hide: hideCursor,
+        idx: function () { return cursorIdx; },
+        count: function () { return n; }
+    };
+
     const overlay = createSVG('rect', { x: ax.padLeft, y: ax.padTop, width: ax.w - ax.padLeft - ax.padRight, height: ax.h - ax.padTop - ax.padBottom, fill: 'transparent' });
     overlay.addEventListener('mousemove', function (e) {
         const rect = svg.getBoundingClientRect();
@@ -2475,16 +2550,61 @@ function renderChart(acc, inp) {
         let idx = Math.round(ratio * n);
         if (idx < 0) idx = 0;
         if (idx > n) idx = n;
-        const tooltip = document.getElementById('tooltip');
-        tooltip.style.left = Math.min(Math.max(x + 10, 0), ax.w - 10) + 'px';
-        tooltip.style.top = Math.max(ax.yScale(acc.mod.points[idx].balance) - 70, 10) + 'px';
-        tooltip.style.opacity = 1;
-        tooltip.innerHTML = '<strong>Age ' + (inp.age + idx) + '</strong> (' + (new Date().getFullYear() + idx) + ')<br>Hist: ' +
-            formatMoneyCompact(acc.hist.points[idx].balance) + '<br>Mod: ' + formatMoneyCompact(acc.mod.points[idx].balance) +
-            '<br>Con: ' + formatMoneyCompact(acc.con.points[idx].balance);
+        showCursor(idx, false);
     });
-    overlay.addEventListener('mouseleave', function () { document.getElementById('tooltip').style.opacity = 0; });
+    overlay.addEventListener('mouseleave', function () { hideCursor(); });
     svg.appendChild(overlay);
+    svg.appendChild(cursor);
+
+    renderGrowthMilestones(acc, inp);
+}
+
+/* Growth chart keyboard access (DNA section 11, rule 6, added
+   2026-11-14 under Brandon's authorization to touch the chart
+   script). renderChart republishes its cursor controls as
+   growthKeys on every render; these listeners bind once, in init,
+   and always drive the freshest render. */
+let growthKeys = null;
+
+function bindGrowthKeys() {
+    const svg = document.getElementById('mainChart');
+    if (!svg) return;
+    svg.addEventListener('keydown', function (e) {
+        if (!growthKeys) return;
+        const cur = growthKeys.idx();
+        let next = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = cur === null ? 0 : Math.min(growthKeys.count(), cur + 1);
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = cur === null ? 0 : Math.max(0, cur - 1);
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = growthKeys.count();
+        if (next === null) return;
+        e.preventDefault();
+        growthKeys.show(next, true);
+    });
+    svg.addEventListener('focus', function () {
+        if (growthKeys && growthKeys.idx() === null) growthKeys.show(0, true);
+    });
+    svg.addEventListener('blur', function () {
+        if (growthKeys) growthKeys.hide();
+    });
+}
+
+/* Printed milestone table for the growth chart (DNA section 11,
+   rules 1 and 6): the chart's headline data in print, adjacent to
+   the chart inside the same card. Start age, every age divisible
+   by 5, and the retirement age. */
+function renderGrowthMilestones(acc, inp) {
+    const host = document.getElementById('growthMilestones');
+    if (!host) return;
+    const last = acc.mod.points.length - 1;
+    let rows = '';
+    for (let i = 0; i <= last; i++) {
+        if (i !== 0 && i !== last && (inp.age + i) % 5 !== 0) continue;
+        rows += '<tr><td>Age ' + (inp.age + i) + '</td><td>' + formatMoneyFull(acc.con.points[i].balance) + '</td><td>' +
+            formatMoneyFull(acc.mod.points[i].balance) + '</td><td>' + formatMoneyFull(acc.hist.points[i].balance) + '</td></tr>';
+    }
+    host.innerHTML = '<p class="table-explainer">Balances at milestone ages, from the same projection as the chart.</p>' +
+        '<div class="table-container" style="max-height:none;"><table><thead><tr><th>Age</th><th>Conservative (7%)</th><th>Moderate (10%)</th><th>Historical (12.9%)</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 
 function renderIncomeChart(income, inp) {
@@ -2502,6 +2622,25 @@ function renderIncomeChart(income, inp) {
     let d = 'M ' + xScale(0) + ' ' + ax.yScale(income.rows[0].end);
     income.rows.forEach(function (r, i) { d += ' L ' + xScale(i) + ' ' + ax.yScale(r.end); });
     svg.appendChild(createSVG('path', { d: d, 'class': 'line-inc' }));
+    renderIncomeMilestones(income);
+}
+
+/* Printed milestone table for the income chart (DNA section 11,
+   rule 1, added 2026-11-14): the balance series previously lived
+   only in the Details cash flow table, one section away. First
+   retirement year, every age divisible by 5, and the final year,
+   printed inside the Income card beside the chart. */
+function renderIncomeMilestones(income) {
+    const host = document.getElementById('incomeMilestones');
+    if (!host || !income.rows.length) return;
+    const rows = income.rows;
+    let body = '';
+    for (let i = 0; i < rows.length; i++) {
+        if (i !== 0 && i !== rows.length - 1 && rows[i].age % 5 !== 0) continue;
+        body += '<tr><td>Age ' + rows[i].age + '</td><td>' + formatMoneyFull(rows[i].end) + '</td></tr>';
+    }
+    host.innerHTML = '<p class="table-explainer">Portfolio balance at milestone ages, from the same simulation as the chart.</p>' +
+        '<div class="table-container" style="max-height:none;"><table><thead><tr><th>Age</th><th>Ending balance</th></tr></thead><tbody>' + body + '</tbody></table></div>';
 }
 
 /* ---------- Monte Carlo ---------- */
@@ -2846,6 +2985,7 @@ function init() {
     bindSpendDown();
     bindTabs();
     bindViewMode();
+    bindGrowthKeys();
     document.getElementById('mcRun').addEventListener('click', runMC);
     document.getElementById('mcPathsLabel').textContent = MODEL.mcPaths.toLocaleString();
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
